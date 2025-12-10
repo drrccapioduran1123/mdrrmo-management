@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MDRRMO PIO DURAN - Supply Inventory System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --light-color: #ecf0f1;
+            --gradient-start: #2c3e50;
+            --gradient-end: #4a6491;
+        }
+        
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        /* Modern Header Styles */
+        .modern-header {
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            color: white;
+            padding: 1.5rem 0;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            position: relative;
+            overflow: hidden;
+            border-bottom: 5px solid #e74c3c;
+        }
+        
+        .modern-header::before {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+            transform: rotate(30deg);
+            animation: shine 8s infinite linear;
+        }
+        
+        @keyframes shine {
+            0% { transform: rotate(30deg) translateX(-100%); }
+            100% { transform: rotate(30deg) translateX(100%); }
+        }
+        
+        .header-content {
+            position: relative;
+            z-index: 2;
+        }
+        
+        .logo-container {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .logo-img {
+            height: 80px;
+            margin-right: 20px;
+            filter: drop-shadow(0 5px 15px rgba(0,0,0,0.3));
+            transition: all 0.4s ease;
+        }
+        
+        .logo-img:hover {
+            transform: scale(1.05) rotate(5deg);
+            filter: drop-shadow(0 8px 20px rgba(0,0,0,0.4));
+        }
+        
+        .header-text h1 {
+            font-size: 2.2rem;
+            margin: 0;
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            background: linear-gradient(to right, #fff, #a8d8ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            position: relative;
+        }
+        
+        .header-text h1::after {
+            content: "";
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            width: 100px;
+            height: 3px;
+            background: linear-gradient(to right, #e74c3c, #f39c12);
+            border-radius: 3px;
+            animation: line-grow 2s ease infinite alternate;
+        }
+        
+        @keyframes line-grow {
+            0% { width: 50px; }
+            100% { width: 150px; }
+        }
+        
+        .header-text h2 {
+            font-size: 1.3rem;
+            margin: 8px 0 0 0;
+            font-weight: 300;
+            opacity: 0.95;
+            letter-spacing: 0.5px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+        
+        .home-btn {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            border: none;
+            padding: 12px 25px;
+            border-radius: 50px;
+            color: white;
+            font-weight: 600;
+            transition: all 0.4s ease;
+            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .home-btn::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: 0.5s;
+        }
+        
+        .home-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(231, 76, 60, 0.6);
+        }
+        
+        .home-btn:hover::before {
+            left: 100%;
+        }
+        
+        .home-btn:active {
+            transform: translateY(1px);
+        }
+        
+        /* Animated Icons */
+        .animated-icon {
+            display: inline-block;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        .floating-icon {
+            position: absolute;
+            font-size: 1.5rem;
+            opacity: 0.2;
+            z-index: 1;
+            animation: float 8s infinite ease-in-out;
+        }
+        
+        .icon-1 { top: 20%; left: 10%; animation-delay: 0s; }
+        .icon-2 { top: 60%; left: 90%; animation-delay: 2s; }
+        .icon-3 { top: 80%; left: 20%; animation-delay: 4s; }
+        .icon-4 { top: 30%; left: 80%; animation-delay: 6s; }
+        
+        @keyframes float {
+            0% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(10deg); }
+            100% { transform: translateY(0) rotate(0deg); }
+        }
+        
+        /* Header Particles Effect */
+        .particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+        
+        .particle {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            animation: particle-float 15s infinite linear;
+        }
+        
+        @keyframes particle-float {
+            0% { transform: translateY(100vh) translateX(0); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 0.8; }
+            100% { transform: translateY(-100px) translateX(100px); opacity: 0; }
+        }
+        
+        /* Card Styles */
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+            margin-bottom: 1.5rem;
+            transition: all 0.4s ease;
+            overflow: hidden;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+        
+        .card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+        }
+        
+        .card-header {
+            background: linear-gradient(135deg, var(--secondary-color), #2980b9);
+            color: white;
+            border-radius: 15px 15px 0 0 !important;
+            padding: 1.2rem 1.5rem;
+            font-weight: 600;
+            font-size: 1.1rem;
+            letter-spacing: 0.5px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--secondary-color), #2980b9);
+            border: none;
+            padding: 0.6rem 1.5rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #2980b9, var(--secondary-color));
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #27ae60, #219653);
+            border: none;
+            border-radius: 8px;
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, var(--accent-color), #c0392b);
+            border: none;
+            border-radius: 8px;
+        }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, #f39c12, #e67e0e);
+            border: none;
+            color: white;
+            border-radius: 8px;
+        }
+        
+        .table th {
+            background: linear-gradient(135deg, var(--primary-color), #34495e);
+            color: white;
+            border: none;
+            font-weight: 600;
+        }
+        
+        .table td {
+            vertical-align: middle;
+        }
+        
+        .status-in-stock {
+            color: #27ae60;
+            font-weight: 600;
+        }
+        
+        .status-low-stock {
+            color: #e67e22;
+            font-weight: 600;
+        }
+        
+        .status-out-of-stock {
+            color: #e74c3c;
+            font-weight: 600;
+        }
+        
+        .modal-header {
+            background: linear-gradient(135deg, var(--primary-color), #34495e);
+            color: white;
+        }
+        
+        .form-control:focus {
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+        }
+        
+        .search-box {
+            position: relative;
+        }
+        
+        .search-box i {
+            position: absolute;
+            left: 15px;
+            top: 12px;
+            color: #6c757d;
+        }
+        
+        .search-box input {
+            padding-left: 40px;
+            border-radius: 50px;
+            border: 2px solid #e1e5eb;
+            transition: all 0.3s ease;
+        }
+        
+        .search-box input:focus {
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.15);
+        }
+        
+        .action-buttons .btn {
+            margin-right: 5px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+        
+        .action-buttons .btn:hover {
+            transform: scale(1.1);
+        }
+        
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            
+            .table {
+                border: 1px solid #dee2e6;
+            }
+            
+            .table th, .table td {
+                border: 1px solid #dee2e6;
+            }
+        }
+        
+        footer {
+            background: linear-gradient(135deg, var(--primary-color), #34495e);
+            color: white;
+            padding: 1.5rem 0;
+            margin-top: 2rem;
+            text-align: center;
+            border-top: 5px solid #e74c3c;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .header-text h1 {
+                font-size: 1.8rem;
+            }
+            
+            .header-text h2 {
+                font-size: 1rem;
+            }
+            
+            .logo-img {
+                height: 60px;
+            }
+            
+            .home-btn {
+                padding: 10px 20px;
+                font-size: 0.9rem;
+            }
+        }
+        
+        /* Loading spinner */
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+        }
+        
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            flex-direction: column;
+            color: white;
+        }
+        
+        .status-connected {
+            color: #27ae60;
+            font-weight: 600;
+        }
+        
+        .status-disconnected {
+            color: #e74c3c;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="modern-header">
+        <div class="particles" id="particles"></div>
+        <i class="fas fa-box floating-icon icon-1"></i>
+        <i class="fas fa-warehouse floating-icon icon-2"></i>
+        <i class="fas fa-truck-loading floating-icon icon-3"></i>
+        <i class="fas fa-clipboard-list floating-icon icon-4"></i>
+        
+        <div class="container header-content">
+            <div class="d-flex justify-content-between align-items-center flex-wrap">
+                <div class="d-flex align-items-center mb-3 mb-md-0">
+                    <div class="logo-container">
+                        <img src="https://res.cloudinary.com/dedcmctqk/image/upload/v1758626523/drrlogo-120px_ylsofh.png" alt="MDRRMO Logo" class="logo-img animated-icon">
+                    </div>
+                    <div class="header-text">
+                        <h1>MDRRMO PIO DURAN</h1>
+                        <h2>SUPPLY INVENTORY SYSTEM</h2>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center">
+                    <span id="connectionStatus" class="me-3 status-disconnected">
+                        <i class="fas fa-circle me-1"></i>Offline Mode
+                    </span>
+                    <a href="index.html" class="home-btn">
+                        <i class="fas fa-home animated-icon"></i> HOME
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="loading-overlay" id="loadingOverlay" style="display: none;">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-3">Processing...</p>
+    </div>
+
+    <div class="container">
+        <div class="row mb-4 no-print">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-boxes me-2"></i>Inventory Management</span>
+                        <div>
+                            <button class="btn btn-light btn-sm me-2" id="exportBtn">
+                                <i class="fas fa-file-export me-1"></i> Export CSV
+                            </button>
+                            <button class="btn btn-light btn-sm me-2" id="importBtn">
+                                <i class="fas fa-file-import me-1"></i> Import CSV
+                            </button>
+                            <input type="file" id="csvFile" accept=".csv" style="display: none;">
+                            <button class="btn btn-light btn-sm me-2" id="refreshBtn">
+                                <i class="fas fa-sync-alt me-1"></i> Refresh
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-8">
+                                <div class="search-box">
+                                    <i class="fas fa-search"></i>
+                                    <input type="text" class="form-control" id="searchInput" placeholder="Search items...">
+                                </div>
+                            </div>
+                            <div class="col-md-4 text-end">
+                                <button class="btn btn-primary" id="addItemBtn">
+                                    <i class="fas fa-plus-circle me-1"></i> ADD ITEM
+                                </button>
+                                <button class="btn btn-warning" id="printBtn">
+                                    <i class="fas fa-print me-1"></i> PRINT
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover" id="inventoryTable">
+                                <thead>
+                                    <tr>
+                                        <th><i class="fas fa-hashtag me-1"></i> Item ID</th>
+                                        <th><i class="fas fa-tag me-1"></i> Item Name</th>
+                                        <th><i class="fas fa-align-left me-1"></i> Description</th>
+                                        <th><i class="fas fa-folder me-1"></i> Category</th>
+                                        <th><i class="fas fa-map-marker-alt me-1"></i> Location</th>
+                                        <th><i class="fas fa-cubes me-1"></i> Current Stock</th>
+                                        <th><i class="fas fa-balance-scale me-1"></i> Unit</th>
+                                        <th><i class="fas fa-info-circle me-1"></i> Status</th>
+                                        <th class="no-print"><i class="fas fa-cog me-1"></i> Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tableBody">
+                                    <!-- Table rows will be populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row no-print">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-chart-bar me-2"></i>Inventory Summary
+                    </div>
+                    <div class="card-body">
+                        <div class="row text-center">
+                            <div class="col-md-3 mb-3">
+                                <div class="card bg-primary text-white">
+                                    <div class="card-body">
+                                        <h3 id="totalItems">0</h3>
+                                        <p><i class="fas fa-box me-2"></i>Total Items</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <div class="card bg-success text-white">
+                                    <div class="card-body">
+                                        <h3 id="inStockItems">0</h3>
+                                        <p><i class="fas fa-check-circle me-2"></i>In Stock</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <div class="card bg-warning text-white">
+                                    <div class="card-body">
+                                        <h3 id="lowStockItems">0</h3>
+                                        <p><i class="fas fa-exclamation-triangle me-2"></i>Low Stock</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <div class="card bg-danger text-white">
+                                    <div class="card-body">
+                                        <h3 id="outOfStockItems">0</h3>
+                                        <p><i class="fas fa-times-circle me-2"></i>Out of Stock</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Item Modal -->
+    <div class="modal fade" id="itemModal" tabindex="-1" aria-labelledby="itemModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="itemModalLabel"><i class="fas fa-box me-2"></i>Add New Item</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="itemForm">
+                        <input type="hidden" id="itemId">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="itemName" class="form-label"><i class="fas fa-tag me-1"></i>Item Name</label>
+                                <input type="text" class="form-control" id="itemName" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="category" class="form-label"><i class="fas fa-folder me-1"></i>Category</label>
+                                <select class="form-control" id="category" required>
+                                    <option value="">Select Category</option>
+                                    <option value="Office Supply">Office Supply</option>
+                                    <option value="Medical Supply">Medical Supply</option>
+                                    <option value="Emergency Equipment">Emergency Equipment</option>
+                                    <option value="Food Supply">Food Supply</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="description" class="form-label"><i class="fas fa-align-left me-1"></i>Description</label>
+                                <textarea class="form-control" id="description" rows="2"></textarea>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="location" class="form-label"><i class="fas fa-map-marker-alt me-1"></i>Location</label>
+                                <input type="text" class="form-control" id="location" required>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="currentStock" class="form-label"><i class="fas fa-cubes me-1"></i>Current Stock</label>
+                                <input type="number" class="form-control" id="currentStock" min="0" required>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="unit" class="form-label"><i class="fas fa-balance-scale me-1"></i>Unit</label>
+                                <input type="text" class="form-control" id="unit" required>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="status" class="form-label"><i class="fas fa-info-circle me-1"></i>Status</label>
+                                <select class="form-control" id="status" required>
+                                    <option value="In Stock">In Stock</option>
+                                    <option value="Low Stock">Low Stock</option>
+                                    <option value="Out of Stock">Out of Stock</option>
+                                </select>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="fas fa-times me-1"></i>Cancel</button>
+                    <button type="button" class="btn btn-primary" id="saveItemBtn"><i class="fas fa-save me-1"></i>Save Item</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="no-print">
+        <div class="container">
+            <p><i class="fas fa-copyright me-1"></i> MDRRMO PIO DURAN Supply Inventory System &copy; 2023</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Inventory data
+        let inventory = [];
+        let nextId = 1;
+        
+        // DOM elements
+        const tableBody = document.getElementById('tableBody');
+        const searchInput = document.getElementById('searchInput');
+        const addItemBtn = document.getElementById('addItemBtn');
+        const printBtn = document.getElementById('printBtn');
+        const exportBtn = document.getElementById('exportBtn');
+        const importBtn = document.getElementById('importBtn');
+        const refreshBtn = document.getElementById('refreshBtn');
+        const csvFile = document.getElementById('csvFile');
+        const itemModal = new bootstrap.Modal(document.getElementById('itemModal'));
+        const saveItemBtn = document.getElementById('saveItemBtn');
+        const itemForm = document.getElementById('itemForm');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const connectionStatus = document.getElementById('connectionStatus');
+        
+        // Summary elements
+        const totalItemsEl = document.getElementById('totalItems');
+        const inStockItemsEl = document.getElementById('inStockItems');
+        const lowStockItemsEl = document.getElementById('lowStockItems');
+        const outOfStockItemsEl = document.getElementById('outOfStockItems');
+        
+        // Create particles for header
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const particleCount = 30;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                
+                // Random properties
+                const size = Math.random() * 5 + 2;
+                const posX = Math.random() * 100;
+                const delay = Math.random() * 15;
+                const duration = Math.random() * 10 + 15;
+                
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.left = `${posX}%`;
+                particle.style.animationDelay = `${delay}s`;
+                particle.style.animationDuration = `${duration}s`;
+                
+                particlesContainer.appendChild(particle);
+            }
+        }
+        
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            createParticles();
+            loadInventory();
+            
+            // Event listeners
+            addItemBtn.addEventListener('click', openAddModal);
+            printBtn.addEventListener('click', printTable);
+            exportBtn.addEventListener('click', exportToCSV);
+            importBtn.addEventListener('click', () => csvFile.click());
+            refreshBtn.addEventListener('click', loadInventory);
+            csvFile.addEventListener('change', importFromCSV);
+            searchInput.addEventListener('input', filterTable);
+            saveItemBtn.addEventListener('click', saveItem);
+        });
+        
+        // Update connection status
+        function updateConnectionStatus(connected) {
+            if (connected) {
+                connectionStatus.className = 'me-3 status-connected';
+                connectionStatus.innerHTML = '<i class="fas fa-circle me-1"></i>Connected to Local Storage';
+            } else {
+                connectionStatus.className = 'me-3 status-disconnected';
+                connectionStatus.innerHTML = '<i class="fas fa-circle me-1"></i>Offline Mode';
+            }
+        }
+        
+        // Load inventory from localStorage
+        function loadInventory() {
+            const savedInventory = localStorage.getItem('supplyInventory');
+            if (savedInventory) {
+                inventory = JSON.parse(savedInventory);
+                // Find the maximum ID to set nextId correctly
+                if (inventory.length > 0) {
+                    nextId = Math.max(...inventory.map(item => item.id)) + 1;
+                }
+            } else {
+                // Initialize with empty array (no mock data)
+                inventory = [];
+                nextId = 1;
+            }
+            
+            renderTable();
+            updateSummary();
+            updateConnectionStatus(false);
+        }
+        
+        // Save inventory to localStorage
+        function saveInventoryToLocalStorage() {
+            localStorage.setItem('supplyInventory', JSON.stringify(inventory));
+            updateConnectionStatus(false);
+        }
+        
+        // Render the inventory table
+        function renderTable(data = inventory) {
+            tableBody.innerHTML = '';
+            
+            if (data.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="9" class="text-center">No items found</td></tr>';
+                return;
+            }
+            
+            data.forEach(item => {
+                const row = document.createElement('tr');
+                let statusClass = '';
+                
+                if (item.status === 'In Stock') statusClass = 'status-in-stock';
+                else if (item.status === 'Low Stock') statusClass = 'status-low-stock';
+                else if (item.status === 'Out of Stock') statusClass = 'status-out-of-stock';
+                
+                row.innerHTML = `
+                    <td>${item.id}</td>
+                    <td>${item.name}</td>
+                    <td>${item.description}</td>
+                    <td>${item.category}</td>
+                    <td>${item.location}</td>
+                    <td>${item.stock}</td>
+                    <td>${item.unit}</td>
+                    <td class="${statusClass}">${item.status}</td>
+                    <td class="action-buttons no-print">
+                        <button class="btn btn-sm btn-warning edit-btn" data-id="${item.id}">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger delete-btn" data-id="${item.id}">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+            
+            // Add event listeners to edit and delete buttons
+            document.querySelectorAll('.edit-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = parseInt(this.getAttribute('data-id'));
+                    openEditModal(id);
+                });
+            });
+            
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = parseInt(this.getAttribute('data-id'));
+                    deleteItem(id);
+                });
+            });
+            
+            updateSummary();
+        }
+        
+        // Update summary statistics
+        function updateSummary() {
+            totalItemsEl.textContent = inventory.length;
+            inStockItemsEl.textContent = inventory.filter(item => item.status === 'In Stock').length;
+            lowStockItemsEl.textContent = inventory.filter(item => item.status === 'Low Stock').length;
+            outOfStockItemsEl.textContent = inventory.filter(item => item.status === 'Out of Stock').length;
+        }
+        
+        // Open modal for adding a new item
+        function openAddModal() {
+            document.getElementById('itemModalLabel').innerHTML = '<i class="fas fa-plus-circle me-2"></i>Add New Item';
+            itemForm.reset();
+            document.getElementById('itemId').value = '';
+            itemModal.show();
+        }
+        
+        // Open modal for editing an existing item
+        function openEditModal(id) {
+            const item = inventory.find(item => item.id === id);
+            if (item) {
+                document.getElementById('itemModalLabel').innerHTML = '<i class="fas fa-edit me-2"></i>Edit Item';
+                document.getElementById('itemId').value = item.id;
+                document.getElementById('itemName').value = item.name;
+                document.getElementById('description').value = item.description;
+                document.getElementById('category').value = item.category;
+                document.getElementById('location').value = item.location;
+                document.getElementById('currentStock').value = item.stock;
+                document.getElementById('unit').value = item.unit;
+                document.getElementById('status').value = item.status;
+                
+                itemModal.show();
+            }
+        }
+        
+        // Save item (both new and edited)
+        function saveItem() {
+            const id = document.getElementById('itemId').value;
+            const name = document.getElementById('itemName').value;
+            const description = document.getElementById('description').value;
+            const category = document.getElementById('category').value;
+            const location = document.getElementById('location').value;
+            const stock = parseInt(document.getElementById('currentStock').value);
+            const unit = document.getElementById('unit').value;
+            const status = document.getElementById('status').value;
+            
+            if (!name || !category || !location || isNaN(stock) || !unit || !status) {
+                showAlert('Please fill in all required fields!', 'danger');
+                return;
+            }
+            
+            showLoading(true);
+            
+            if (id) {
+                // Editing existing item
+                const index = inventory.findIndex(item => item.id === parseInt(id));
+                if (index !== -1) {
+                    inventory[index] = {
+                        id: parseInt(id),
+                        name,
+                        description,
+                        category,
+                        location,
+                        stock,
+                        unit,
+                        status
+                    };
+                }
+            } else {
+                // Adding new item
+                const newItem = {
+                    id: nextId++,
+                    name,
+                    description,
+                    category,
+                    location,
+                    stock,
+                    unit,
+                    status
+                };
+                inventory.push(newItem);
+            }
+            
+            // Save to localStorage
+            saveInventoryToLocalStorage();
+            
+            renderTable();
+            itemModal.hide();
+            showAlert(`Item ${id ? 'updated' : 'added'} successfully!`, 'success');
+            showLoading(false);
+        }
+        
+        // Delete an item
+        function deleteItem(id) {
+            if (confirm('Are you sure you want to delete this item?')) {
+                showLoading(true);
+                
+                inventory = inventory.filter(item => item.id !== id);
+                
+                // Save to localStorage
+                saveInventoryToLocalStorage();
+                
+                renderTable();
+                showAlert('Item deleted successfully!', 'success');
+                showLoading(false);
+            }
+        }
+        
+        // Filter table based on search input
+        function filterTable() {
+            const searchTerm = searchInput.value.toLowerCase();
+            const filteredInventory = inventory.filter(item => 
+                item.name.toLowerCase().includes(searchTerm) ||
+                item.description.toLowerCase().includes(searchTerm) ||
+                item.category.toLowerCase().includes(searchTerm) ||
+                item.location.toLowerCase().includes(searchTerm) ||
+                item.status.toLowerCase().includes(searchTerm)
+            );
+            renderTable(filteredInventory);
+        }
+        
+        // Print the current table view
+        function printTable() {
+            window.print();
+        }
+        
+        // Export inventory to CSV
+        function exportToCSV() {
+            if (inventory.length === 0) {
+                showAlert('No data to export!', 'warning');
+                return;
+            }
+            
+            const csvContent = "data:text/csv;charset=utf-8," 
+                + "ID,Name,Description,Category,Location,Stock,Unit,Status\n"
+                + inventory.map(item => 
+                    `"${item.id}","${item.name}","${item.description}","${item.category}","${item.location}","${item.stock}","${item.unit}","${item.status}"`
+                ).join("\n");
+            
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "supply_inventory.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showAlert('Inventory exported to CSV successfully!', 'success');
+        }
+        
+        // Import inventory from CSV
+        function importFromCSV(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            showLoading(true);
+            
+            Papa.parse(file, {
+                header: true,
+                complete: function(results) {
+                    if (results.data && results.data.length > 0) {
+                        // Clear current inventory
+                        inventory = [];
+                        nextId = 1;
+                        
+                        // Process each row
+                        results.data.forEach(row => {
+                            if (row.ID && row.Name) {
+                                const newItem = {
+                                    id: parseInt(row.ID) || nextId++,
+                                    name: row.Name,
+                                    description: row.Description || '',
+                                    category: row.Category || 'Other',
+                                    location: row.Location || '',
+                                    stock: parseInt(row.Stock) || 0,
+                                    unit: row.Unit || 'Units',
+                                    status: row.Status || 'In Stock'
+                                };
+                                inventory.push(newItem);
+                                
+                                // Update nextId if needed
+                                if (newItem.id >= nextId) {
+                                    nextId = newItem.id + 1;
+                                }
+                            }
+                        });
+                        
+                        // Save to localStorage
+                        saveInventoryToLocalStorage();
+                        
+                        renderTable();
+                        showAlert('Inventory imported from CSV successfully!', 'success');
+                        showLoading(false);
+                    } else {
+                        showAlert('No valid data found in CSV file!', 'danger');
+                        showLoading(false);
+                    }
+                },
+                error: function(error) {
+                    console.error('CSV import error:', error);
+                    showAlert('Error importing CSV file!', 'danger');
+                    showLoading(false);
+                }
+            });
+            
+            // Reset file input
+            event.target.value = '';
+        }
+        
+        // Show/hide loading overlay
+        function showLoading(show) {
+            if (show) {
+                loadingOverlay.style.display = 'flex';
+            } else {
+                loadingOverlay.style.display = 'none';
+            }
+        }
+        
+        // Show alert message
+        function showAlert(message, type) {
+            // Remove any existing alerts
+            const existingAlert = document.querySelector('.alert');
+            if (existingAlert) {
+                existingAlert.remove();
+            }
+            
+            // Create new alert
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type} alert-dismissible fade show`;
+            alert.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            
+            // Add alert to page
+            document.querySelector('.container').insertBefore(alert, document.querySelector('.row'));
+            
+            // Auto remove after 3 seconds
+            setTimeout(() => {
+                if (alert.parentElement) {
+                    alert.remove();
+                }
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

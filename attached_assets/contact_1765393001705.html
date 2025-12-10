@@ -1,0 +1,720 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact Directory</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --primary-bg: #0E2148;
+      --accent-1: #f30059;
+      --accent-2: #7965C1;
+      --text-highlight: #E3D095;
+      --card-bg: rgba(14, 33, 72, 0.85);
+      --border-color: rgba(121, 101, 193, 0.4);
+    }
+
+    body {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      overflow-x: hidden;
+      background: var(--primary-bg);
+      background-attachment: fixed;
+      min-height: 100vh;
+      color: white;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+
+    /* Animated Background Pattern */
+    .background-pattern {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0.1;
+      z-index: 0;
+      pointer-events: none;
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(121, 101, 193, 0.2) 0%, transparent 20%),
+        radial-gradient(circle at 90% 80%, rgba(243, 0, 89, 0.2) 0%, transparent 20%),
+        repeating-linear-gradient(45deg, transparent, transparent 30px, rgba(121, 101, 193, 0.1) 30px, rgba(121, 101, 193, 0.1) 60px);
+    }
+
+    /* Topbar */
+    .topbar {
+      position: sticky;
+      top: 0;
+      width: 100%;
+      height: 70px;
+      background: rgba(14, 33, 72, 0.95);
+      backdrop-filter: blur(15px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 30px;
+      z-index: 1000;
+      transition: all 0.3s ease;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .topbar-logo {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .logo-icon {
+      width: 50px;
+      height: 50px;
+      background: linear-gradient(135deg, var(--accent-2), var(--accent-1));
+      border-radius: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(121, 101, 193, 0.4); }
+      70% { box-shadow: 0 0 0 15px rgba(121, 101, 193, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(121, 101, 193, 0); }
+    }
+
+    .logo-icon img {
+      width: 30px;
+      height: 30px;
+      filter: brightness(0) invert(1);
+    }
+
+    .topbar-title {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--text-highlight);
+      letter-spacing: 1.5px;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Main Container */
+    .main-container {
+      display: flex;
+      width: 100%;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Content Area */
+    .content-area {
+      flex: 1;
+      padding: 40px;
+      transition: all 0.3s ease;
+    }
+
+    .content-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(25px);
+      border-radius: 25px;
+      padding: 20px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border-color);
+      min-height: 700px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .content-card::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(121, 101, 193, 0.1) 0%, transparent 70%);
+      transform: rotate(30deg);
+      z-index: -1;
+    }
+
+    .content-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      padding-bottom: 20px;
+      border-bottom: 3px solid var(--border-color);
+      flex-wrap: wrap;
+      gap: 25px;
+    }
+
+    .content-title {
+      font-size: 32px;
+      font-weight: 800;
+      color: var(--text-highlight);
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .content-title i {
+      color: var(--accent-1);
+      font-size: 36px;
+    }
+
+    .search-form {
+      display: flex;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 40px;
+      padding: 12px 25px;
+      transition: all 0.3s ease;
+      border: 2px solid var(--border-color);
+      min-width: 300px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .search-form:focus-within {
+      background: rgba(255, 255, 255, 0.15);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+      transform: scale(1.02);
+      border-color: var(--accent-2);
+    }
+
+    .search-icon {
+      width: 24px;
+      height: 24px;
+      margin-right: 12px;
+      color: var(--text-highlight);
+    }
+
+    .search-input {
+      flex: 1;
+      border: none;
+      background: transparent;
+      color: var(--text-highlight);
+      font-size: 16px;
+      font-weight: 500;
+      outline: none;
+    }
+
+    .search-input::placeholder {
+      color: rgba(227, 208, 149, 0.7);
+    }
+
+    /* Table Styles */
+    .contacts-table-container {
+      overflow-x: auto;
+      border-radius: 15px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    }
+
+    .contacts-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 15px;
+      overflow: hidden;
+    }
+
+    .contacts-table th {
+      background: linear-gradient(135deg, var(--accent-2), #483AA0);
+      color: white;
+      text-align: left;
+      padding: 2px 25px;
+      font-weight: 500;
+      font-size: 16px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .contacts-table th::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transition: 0.5s;
+    }
+
+    .contacts-table th:hover::after {
+      left: 100%;
+    }
+
+    .contacts-table td {
+      padding: 5px 5px;
+      color: var(--text-highlight);
+      font-size: 15px;
+      font-weight: 400;
+      border-bottom: 1px solid rgba(121, 101, 193, 0.2);
+    }
+
+    .contacts-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .contacts-table tr:nth-child(even) {
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .contacts-table tr:hover {
+      background: rgba(121, 101, 193, 0.2);
+      transform: scale(1.01);
+      transition: all 0.3s ease;
+    }
+
+    .contacts-table td i {
+      margin-right: 5px;
+      color: var(--accent-1);
+    }
+
+    /* Stats Cards */
+    .stats-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 25px;
+      margin-bottom: 40px;
+    }
+
+    .stat-card {
+      background: rgba(121, 101, 193, 0.15);
+      border-radius: 20px;
+      padding: 25px;
+      text-align: center;
+      backdrop-filter: blur(15px);
+      border: 1px solid var(--border-color);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+      transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+      background: rgba(121, 101, 193, 0.25);
+    }
+
+    .stat-icon {
+      font-size: 25px;
+      margin-bottom: 4px;
+      color: var(--accent-1);
+    }
+
+    .stat-value {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--text-highlight);
+      margin-bottom: 5px;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .stat-label {
+      font-size: 14px;
+      color: rgba(227, 208, 149, 0.85);
+      font-weight: 600;
+    }
+
+    /* Footer */
+    .main-footer {
+      width: 100%;
+      padding: 8px;
+      background: linear-gradient(135deg, var(--accent-2), #483AA0);
+      border-top: 1px solid var(--border-color);
+      text-align: center;
+      position: sticky;
+      bottom: 0;
+      z-index: 100;
+      backdrop-filter: blur(10px);
+    }
+
+    .footer-text {
+      font-size: 13px;
+      color: white;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+    }
+
+    /* Loading Spinner */
+    .loading {
+      text-align: center;
+      padding: 60px;
+      color: var(--text-highlight);
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    .spinner {
+      width: 60px;
+      height: 60px;
+      border: 5px solid rgba(121, 101, 193, 0.3);
+      border-top-color: var(--accent-1);
+      border-radius: 50%;
+      animation: spin 1.2s linear infinite;
+      margin: 0 auto 25px;
+      box-shadow: 0 0 20px rgba(243, 0, 89, 0.3);
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Responsive Design */
+    @media (max-width: 1024px) {
+      .content-area {
+        padding: 30px;
+      }
+      
+      .content-card {
+        padding: 30px;
+      }
+      
+      .content-title {
+        font-size: 28px;
+      }
+      
+      .search-form {
+        min-width: 250px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .content-area {
+        padding: 20px;
+      }
+      
+      .topbar {
+        padding: 0 20px;
+        height: 60px;
+      }
+      
+      .topbar-title {
+        font-size: 20px;
+      }
+      
+      .logo-icon {
+        width: 40px;
+        height: 40px;
+      }
+      
+      .content-card {
+        padding: 15px;
+      }
+      
+      .content-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 20px;
+      }
+      
+      .content-title {
+        font-size: 24px;
+      }
+      
+      .search-form {
+        width: 100%;
+        min-width: auto;
+      }
+      
+      .stats-container {
+        grid-template-columns: 1fr 1fr;
+      }
+      
+      .contacts-table th,
+      .contacts-table td {
+        padding: 4px 4px;
+        font-size: 14px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .topbar-title {
+        display: none;
+      }
+      
+      .stats-container {
+        grid-template-columns: 1fr;
+      }
+      
+      .contacts-table {
+        font-size: 13px;
+      }
+      
+      .contacts-table th,
+      .contacts-table td {
+        padding: 4px 4px;
+      }
+      
+      .content-title {
+        font-size: 15px;
+      }
+      
+      .stat-value {
+        font-size: 13px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="background-pattern"></div>
+  
+  <!-- Topbar -->
+  <header class="topbar">
+    <div class="topbar-logo">
+
+        <a href="index.html" class="flex items-center">
+                    <img src="https://res.cloudinary.com/dedcmctqk/image/upload/v1750079276/logome_h9snnx.webp" alt="MDRRMO" class="h-12 w-auto">
+                </a>
+
+      <h1 class="topbar-title" id="topbar-title">CONTACT DIRECTORY</h1>
+    </div>
+  </header>
+  
+  <div class="main-container">
+    <!-- Content Area -->
+    <main class="content-area" id="content-area">
+      <div class="content-card">
+        <div class="content-header">
+          <h2 class="content-title" id="content-title">
+            <i class="fas fa-address-book"></i>
+            Contact Directory
+          </h2>
+          <form class="search-form" id="search-form" role="search">
+            <i class="fas fa-search search-icon"></i>
+            <input type="search" class="search-input" id="search-input" placeholder="Search contacts by name, agency, or designation..." aria-label="Search contacts">
+          </form>
+        </div>
+        
+        <div class="stats-container">
+          <div class="stat-card">
+            <div class="stat-icon">
+              <i class="fas fa-users"></i>
+            </div>
+            <div class="stat-value" id="total-contacts">0</div>
+            <div class="stat-label">Total Contacts</div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-icon">
+              <i class="fas fa-building"></i>
+            </div>
+            <div class="stat-value" id="total-agencies">0</div>
+            <div class="stat-label">Agencies</div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-icon">
+              <i class="fas fa-phone-alt"></i>
+            </div>
+            <div class="stat-value" id="total-phones">0</div>
+            <div class="stat-label">Phone Numbers</div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-icon">
+              <i class="fas fa-envelope"></i>
+            </div>
+            <div class="stat-value" id="total-emails">0</div>
+            <div class="stat-label">Email Addresses</div>
+          </div>
+        </div>
+        
+        <div id="contacts-view">
+          <div class="loading">
+            <div class="spinner"></div>
+            <p>Loading contacts from Google Sheets...</p>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+  
+  <!-- Footer -->
+  <footer class="main-footer">
+    <div class="footer-text" id="footer-text">
+      <i class="fas fa-copyright"></i> 2025 MDRRMO Pio Duran | Contact Directory. All rights reserved.
+    </div>
+  </footer>
+  
+  <script>
+  // Updated Google Sheet (Sheet1) - Public Share Link
+  const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRuSLlvwAmfIoxXkRofkc1K2yLpnWD49FsCko4UkqPRkEbSS4TPZmehiuefSx81f0eQBjIaSHPAle48/pub?gid=0&single=true&output=csv";
+
+  // Default configuration
+  const defaultConfig = {
+    page_title: "MDRRMO CONTACT DIRECTORY",
+    footer_text: "2025 MDRRMO Pio Duran | Contact Directory. All rights reserved.",
+    background_color: "#0E2148",
+    surface_color: "#99005e",
+    text_color: "#E3D095",
+    primary_action_color: "#f30059",
+    secondary_action_color: "#871239",
+    font_family: "Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen, Ubuntu, Cantarell, sans-serif",
+    font_size: 16
+  };
+
+  let contacts = [];
+  let filteredContacts = [];
+
+  // Fetch data from the new Google Sheets CSV link
+  async function fetchContacts() {
+    try {
+      const response = await fetch(SHEET_CSV_URL);
+      if (!response.ok) throw new Error("Failed to fetch data from Google Sheets");
+
+      const textData = await response.text();
+      const rows = textData.trim().split("\n").map(r => r.split(","));
+
+      if (!rows || rows.length < 2) return [];
+
+      const headers = rows[0];
+      const contacts = rows.slice(1).map(row => {
+        const contact = {};
+        headers.forEach((header, index) => {
+          contact[header.trim()] = row[index]?.trim() || "";
+        });
+        return contact;
+      });
+
+      return contacts;
+    } catch (error) {
+      console.error("Error fetching contacts:", error);
+      return [];
+    }
+  }
+
+  async function loadContacts() {
+    const contactsView = document.getElementById("contacts-view");
+    const searchInput = document.getElementById("search-input");
+
+    if (searchInput) searchInput.value = "";
+
+    contactsView.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading contacts from Google Sheets...</p></div>';
+
+    contacts = await fetchContacts();
+    filteredContacts = [...contacts];
+
+    updateStats();
+    renderContacts();
+  }
+
+  function updateStats() {
+    document.getElementById("total-contacts").textContent = contacts.length;
+    
+    const agencies = new Set(contacts.map(c => c.Agency).filter(a => a));
+    document.getElementById("total-agencies").textContent = agencies.size;
+    
+    const phones = contacts.filter(c => c["Phone Number"]).length;
+    document.getElementById("total-phones").textContent = phones;
+    
+    const emails = contacts.filter(c => c["Email Address"]).length;
+    document.getElementById("total-emails").textContent = emails;
+  }
+
+  function filterContacts(searchTerm) {
+    const term = searchTerm.toLowerCase().trim();
+    filteredContacts = contacts.filter(contact =>
+      Object.values(contact).some(value => value.toLowerCase().includes(term))
+    );
+    renderContacts();
+  }
+
+  function renderContacts() {
+    const contactsView = document.getElementById("contacts-view");
+
+    if (filteredContacts.length === 0) {
+      contactsView.innerHTML = '<div class="loading"><p><i class="fas fa-exclamation-circle"></i> No contacts found</p></div>';
+      return;
+    }
+
+    const tableHTML = `
+      <div class="contacts-table-container">
+        <table class="contacts-table">
+          <thead>
+            <tr>
+              <th><i class="fas fa-user"></i> Name</th>
+              <th><i class="fas fa-building"></i> Agency</th>
+              <th><i class="fas fa-id-badge"></i> Designation</th>
+              <th><i class="fas fa-phone"></i> Phone</th>
+              <th><i class="fas fa-envelope"></i> Email</th>
+              <th><i class="fas fa-info-circle"></i> Others</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${filteredContacts
+              .map(
+                contact => `
+                <tr>
+                  <td><i class=""></i> ${contact.Name || ""}</td>
+                  <td><i class=""></i> ${contact.Agency || ""}</td>
+                  <td><i class=""></i> ${contact["Designation"] || ""}</td>
+                  <td><i class=""></i> ${contact["Phone Number"] || ""}</td>
+                  <td><i class=""></i> ${contact["Email Address"] || ""}</td>
+                  <td><i class=""></i> ${contact.Others || ""}</td>
+                </tr>`
+              )
+              .join("")}
+          </tbody>
+        </table>
+      </div>
+    `;
+
+    contactsView.innerHTML = tableHTML;
+  }
+
+  function attachEventListeners() {
+    const searchForm = document.getElementById("search-form");
+    const searchInput = document.getElementById("search-input");
+
+    if (searchForm) searchForm.addEventListener("submit", e => e.preventDefault());
+    if (searchInput) searchInput.addEventListener("input", e => filterContacts(e.target.value));
+  }
+
+  async function onConfigChange(config) {
+    const topbarTitle = document.getElementById("topbar-title");
+    const footerText = document.getElementById("footer-text");
+
+    if (topbarTitle) topbarTitle.textContent = config.page_title || defaultConfig.page_title;
+    if (footerText) footerText.innerHTML = `<i class="fas fa-copyright"></i> ${config.footer_text || defaultConfig.footer_text}`;
+
+    const customFont = config.font_family || defaultConfig.font_family;
+    document.body.style.fontFamily = customFont;
+
+    const bgColor = config.background_color || defaultConfig.background_color;
+    document.body.style.background = bgColor;
+
+    const textColor = config.text_color || defaultConfig.text_color;
+    const primaryColor = config.primary_action_color || defaultConfig.primary_action_color;
+    const secondaryColor = config.secondary_action_color || defaultConfig.secondary_action_color;
+
+    document.documentElement.style.setProperty('--primary-bg', bgColor);
+    document.documentElement.style.setProperty('--accent-1', primaryColor);
+    document.documentElement.style.setProperty('--accent-2', secondaryColor);
+    document.documentElement.style.setProperty('--text-highlight', textColor);
+
+    const baseSize = config.font_size || defaultConfig.font_size;
+    if (topbarTitle) topbarTitle.style.fontSize = `${baseSize * 1.5}px`;
+    const contentTitle = document.getElementById("content-title");
+    if (contentTitle) contentTitle.style.fontSize = `${baseSize * 2}px`;
+  }
+
+  function init() {
+    attachEventListeners();
+    loadContacts();
+    onConfigChange(defaultConfig);
+  }
+
+  document.addEventListener("DOMContentLoaded", init);
+</script>
+</body>
+</html>

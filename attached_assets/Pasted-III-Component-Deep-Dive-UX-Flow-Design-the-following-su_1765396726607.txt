@@ -1,0 +1,50 @@
+III. 📦 Component Deep Dive & UX Flow
+Design the following sub-dashboards, focusing on high-utility and visual appeal:
+
+1. Supply Inventory (supply.jpg)
+Inventory Table: Replace the standard table view with a modern, responsive design.
+
+Row Styling: Implement subtle alternating row colors or a focus-on-hover effect to improve readability.
+
+Status Indicators: The "Low Stock," "In Stock," and "Out of Stock" statuses must be represented by custom, color-coded, and visually appealing pills/chips (Yellow, Green, Red) rather than plain text or basic color cells.
+
+Search/Filter: The search bar should be sleek and prominent. Include intuitive filtering capabilities (by Category, Location).
+
+Inventory Summary (Data Visualization):
+
+The four summary boxes (Total Items, In Stock, Low Stock, Out of Stock) should utilize mini-data visualizations (e.g., a subtle bar or ring chart) within the card itself to visually represent the number, instead of just the number/color block.
+
+The design should ensure these key metrics are the first thing the user registers upon loading.
+
+2. Contact Directory (contact information.jpg)
+Zero State UX: The "No contacts found" state is currently plain. Design an engaging "Zero State" (an empty state illustration or message) that guides the user on how to add the first contact or agency.
+
+Information Cards (Counters): The counters (Total Contacts, Agencies, Phone Numbers, Email Addresses) should be presented as prominent, modern statistic cards with large, clear typography and relevant icons.
+
+Directory View: When contacts exist, design a contact list/grid that allows for quick scanning of key details (Name, Agency, Primary Contact).
+
+3. File Management (documents.jpg)
+Navigation Sidebar: Enhance the sidebar (Home, TC Bulletin, Resolutions, etc.) with clear active state indicators and modern collapsible components for folders (e.g., BDRRMP 2025).
+
+Document & Image Cards:
+
+File Previews: Design custom cards for file types (DOCX, PDF, etc.) that clearly display the file type icon and name, with a smooth hover effect.
+
+Image Gallery: The image cards should feature a sleek hover effect that overlays the metadata or gives a quick-view option. Use a modern, consistent aspect ratio and grid layout.
+
+4. Photo Documentation (photo documentation.jpg)
+Left Navigation: Improve the vertical navigation list with custom checkboxes/icons and clear, padded sections. The active selection (e.g., "Accident Response") must be immediately obvious.
+
+Content Area: The main content area must feature a clean, minimal "Select a subfolder to view images" message, ready to switch to a visually appealing image grid upon selection.
+
+5. Calendar and Maps (calendar of activity.jpg, map.jpg)
+Calendar: Design a modern calendar interface focusing on clean data presentation. The "Activity & Task Schedule" and "Task Schedule" tables need excellent column definition, spacing, and use color coding (not shown, but for future events) for instant priority recognition.
+
+Maps: The sidebar for different map layers (Interactive Map, Topographic, Hazards Maps, etc.) must be cohesive with the rest of the application's sidebars. The map area itself should be given maximum screen real estate.
+
+IV. ⚙️ Technical & Performance Requirements
+Responsiveness: The dashboard must be fully responsive and performant across desktop, tablet, and mobile breakpoints. Prioritize the Desktop/Tablet experience as the primary use case.
+
+Performance: The UI must be lightweight, prioritize fast loading times, and feature smooth 60fps animations. Avoid reliance on heavy libraries where native CSS/JS can achieve the same result.
+
+Consistency: Every button, input field, modal, and notification must adhere to the established custom design language—no default browser or framework styles allowed.
