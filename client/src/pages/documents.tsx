@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Header } from "@/components/header";
@@ -6,7 +7,8 @@ import { BackgroundPattern } from "@/components/background-pattern";
 import { SearchBar } from "@/components/search-bar";
 import { LoadingSpinner } from "@/components/loading-spinner";
 import { EmptyState } from "@/components/empty-state";
-import { Image as ImageIcon, X, ChevronLeft, ChevronRight, Download, ExternalLink, Folder } from "lucide-react";
+import { FileText, X, ChevronLeft, ChevronRight, Download, ExternalLink, Folder, ChevronDown, ChevronRight as ChevronRightIcon } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import type { GalleryImage, DriveFolder } from "@shared/schema";
 
 interface ImageModalProps {
@@ -63,13 +65,13 @@ function ImageModal({ image, onClose, onPrev, onNext, hasPrev, hasNext }: ImageM
           alt={image.name}
           className="max-w-full max-h-[60vh] object-contain rounded-lg shadow-2xl"
         />
-
+        
         <div className="mt-6 text-center">
           <h3 className="text-xl font-bold text-white mb-2">{image.name}</h3>
           {image.description && (
             <p className="text-sm text-white/70 mb-4">{image.description}</p>
           )}
-
+          
           <div className="flex items-center justify-center gap-3">
             {image.webContentLink && (
               <a
@@ -107,6 +109,7 @@ export default function Gallery() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<number | null>(null);
+  const [openFolders, setOpenFolders] = useState<Set<string>>(new Set());
 
   const { data: folders = [], isLoading: foldersLoading } = useQuery<DriveFolder[]>({
     queryKey: ["/api/gallery/folders"],
@@ -140,6 +143,16 @@ export default function Gallery() {
     }
   };
 
+  const toggleFolder = (folderId: string) => {
+    const newOpenFolders = new Set(openFolders);
+    if (newOpenFolders.has(folderId)) {
+      newOpenFolders.delete(folderId);
+    } else {
+      newOpenFolders.add(folderId);
+    }
+    setOpenFolders(newOpenFolders);
+  };
+
   return (
     <div className="min-h-screen flex flex-col" style={{ background: "#1A1E32" }}>
       <BackgroundPattern />
@@ -162,7 +175,7 @@ export default function Gallery() {
                   className="w-12 h-12 rounded-xl flex items-center justify-center"
                   style={{ background: "linear-gradient(135deg, #C82A52, #C82A52CC)" }}
                 >
-                  <ImageIcon className="w-6 h-6 text-white" />
+                  <FileText className="w-6 h-6 text-white" />
                 </div>
                 <h2 
                   className="text-2xl md:text-3xl font-extrabold"
@@ -198,16 +211,54 @@ export default function Gallery() {
                 ) : (
                   <div className="space-y-1">
                     {folders.map(folder => (
-                      <button
+                      <Collapsible
                         key={folder.id}
-                        onClick={() => setSelectedFolder(folder.id)}
-                        className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-left ${selectedFolder === folder.id ? 'bg-[#C82A52]/30' : 'hover:bg-white/10'}`}
-                        style={{ color: "#E3D095" }}
-                        data-testid={`folder-${folder.id}`}
+                        open={openFolders.has(folder.id)}
+                        onOpenChange={() => toggleFolder(folder.id)}
                       >
-                        <Folder className="w-4 h-4" style={{ color: selectedFolder === folder.id ? "#C82A52" : "rgba(227, 208, 149, 0.6)" }} />
-                        <span className="text-sm font-medium truncate">{folder.name}</span>
-                      </button>
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-1">
+                            <CollapsibleTrigger asChild>
+                              <button
+                                className="p-1 hover:bg-white/10 rounded transition-colors"
+                                style={{ color: "#E3D095" }}
+                              >
+                                {openFolders.has(folder.id) ? (
+                                  <ChevronDown className="w-4 h-4" />
+                                ) : (
+                                  <ChevronRightIcon className="w-4 h-4" />
+                                )}
+                              </button>
+                            </CollapsibleTrigger>
+                            <button
+                              onClick={() => setSelectedFolder(folder.id)}
+                              className={`flex-1 flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-left ${selectedFolder === folder.id ? 'bg-[#C82A52]/30' : 'hover:bg-white/10'}`}
+                              style={{ color: "#E3D095" }}
+                              data-testid={`folder-${folder.id}`}
+                            >
+                              <Folder className="w-4 h-4" style={{ color: selectedFolder === folder.id ? "#C82A52" : "rgba(227, 208, 149, 0.6)" }} />
+                              <span className="text-sm font-medium truncate">{folder.name}</span>
+                            </button>
+                          </div>
+                          
+                          {folder.subfolders && folder.subfolders.length > 0 && (
+                            <CollapsibleContent className="ml-6 space-y-1">
+                              {folder.subfolders.map(subfolder => (
+                                <button
+                                  key={subfolder.id}
+                                  onClick={() => setSelectedFolder(subfolder.id)}
+                                  className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-left ${selectedFolder === subfolder.id ? 'bg-[#C82A52]/30' : 'hover:bg-white/10'}`}
+                                  style={{ color: "#E3D095" }}
+                                  data-testid={`subfolder-${subfolder.id}`}
+                                >
+                                  <Folder className="w-3 h-3" style={{ color: selectedFolder === subfolder.id ? "#C82A52" : "rgba(227, 208, 149, 0.6)" }} />
+                                  <span className="text-sm font-medium truncate">{subfolder.name}</span>
+                                </button>
+                              ))}
+                            </CollapsibleContent>
+                          )}
+                        </div>
+                      </Collapsible>
                     ))}
                   </div>
                 )}
@@ -224,7 +275,7 @@ export default function Gallery() {
                   <LoadingSpinner message="Loading images..." />
                 ) : filteredImages.length === 0 ? (
                   <EmptyState
-                    icon={ImageIcon}
+                    icon={FileText}
                     title="No images found"
                     description={searchQuery ? "Try adjusting your search." : "This category has no images yet."}
                   />
@@ -249,7 +300,7 @@ export default function Gallery() {
                             loading="lazy"
                           />
                         </div>
-
+                        
                         <div 
                           className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end"
                           style={{ background: "linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 50%)" }}

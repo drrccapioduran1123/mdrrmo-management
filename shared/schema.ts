@@ -73,8 +73,8 @@ export interface DriveFile {
 export interface DriveFolder {
   id: string;
   name: string;
-  children?: DriveFolder[];
   files?: DriveFile[];
+  subfolders?: DriveFolder[];
 }
 
 export interface GalleryImage {

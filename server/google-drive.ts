@@ -188,24 +188,47 @@ export async function getAdministrativeMaps(): Promise<DriveFolder[]> {
 export async function getGalleryFolders(): Promise<DriveFolder[]> {
   try {
     const drive = await getGoogleDriveClient();
+    const GALLERY_ROOT_FOLDER_ID = '111ShUKgBwTA1qre5JjVelfzNSddQqa23';
     
+    // Fetch sub-folders (first level)
     const response = await drive.files.list({
-      q: `mimeType='application/vnd.google-apps.folder' and trashed=false`,
+      q: `'${GALLERY_ROOT_FOLDER_ID}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`,
       fields: 'files(id, name)',
-      pageSize: 30,
+      pageSize: 100,
+      orderBy: 'name',
     });
 
     const folders = response.data.files || [];
     
     if (folders.length === 0) {
-      console.warn('Google Drive returned no gallery folders');
+      console.warn('No sub-folders found in gallery root folder');
       return [];
     }
 
-    return folders.map(folder => ({
-      id: folder.id!,
-      name: folder.name!,
-    }));
+    // For each sub-folder, fetch its sub-sub-folders
+    const result: DriveFolder[] = await Promise.all(
+      folders.map(async (folder) => {
+        const subFoldersResponse = await drive.files.list({
+          q: `'${folder.id}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`,
+          fields: 'files(id, name)',
+          pageSize: 100,
+          orderBy: 'name',
+        });
+
+        const subFolders = (subFoldersResponse.data.files || []).map(subFolder => ({
+          id: subFolder.id!,
+          name: subFolder.name!,
+        }));
+
+        return {
+          id: folder.id!,
+          name: folder.name!,
+          subfolders: subFolders,
+        };
+      })
+    );
+
+    return result;
   } catch (error) {
     console.error('Error fetching gallery folders from Google Drive:', error);
     throw error;
