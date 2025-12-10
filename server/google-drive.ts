@@ -6,6 +6,7 @@ import type { DriveFolder, DriveFile, GalleryImage } from '@shared/schema';
 
 const DEMO_MODE = process.env.DEMO_MODE === 'true' || process.env.NODE_ENV === 'development';
 const ADMIN_MAPS_FOLDER_ID = process.env.GOOGLE_DRIVE_MAPS_FOLDER_ID || '1Pz2MM0Ge4RPQ6tdUORibYGoeKepJ9RSt';
+const DOCUMENTS_ROOT_FOLDER_ID = '15_xiFeXu_vdIe2CYrjGaRCAho2OqhGvo';
 
 let connectionSettings: any = null;
 let lastFetchTime = 0;
@@ -152,41 +153,44 @@ export async function getDocumentFolders(): Promise<DriveFolder[]> {
   try {
     const drive = await getGoogleDriveClient();
     
+    // Fetch only folders from the specific root folder
     const response = await drive.files.list({
-      q: `mimeType='application/vnd.google-apps.folder' and trashed=false`,
-      fields: 'files(id, name, parents)',
+      q: `'${DOCUMENTS_ROOT_FOLDER_ID}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`,
+      fields: 'files(id, name)',
       pageSize: 100,
+      orderBy: 'name',
     });
 
     const folders = response.data.files || [];
     
     if (folders.length === 0) {
-      console.warn('Google Drive returned no folders');
+      console.warn('No folders found in the specified Google Drive folder');
       return [];
     }
     
-    const folderMap = new Map<string, DriveFolder>();
-    folders.forEach(folder => {
-      folderMap.set(folder.id!, {
-        id: folder.id!,
-        name: folder.name!,
-        children: [],
-        files: [],
-      });
-    });
-
+    // Fetch all files from the root folder (not from subfolders)
     const filesResponse = await drive.files.list({
-      q: `mimeType!='application/vnd.google-apps.folder' and trashed=false`,
-      fields: 'files(id, name, mimeType, webViewLink, webContentLink, thumbnailLink, createdTime, modifiedTime, size, parents)',
-      pageSize: 200,
+      q: `'${DOCUMENTS_ROOT_FOLDER_ID}' in parents and mimeType!='application/vnd.google-apps.folder' and trashed=false`,
+      fields: 'files(id, name, mimeType, webViewLink, webContentLink, thumbnailLink, createdTime, modifiedTime, size)',
+      pageSize: 500,
+      orderBy: 'name',
     });
 
-    const files = filesResponse.data.files || [];
-    
-    files.forEach(file => {
-      const parentId = file.parents?.[0];
-      if (parentId && folderMap.has(parentId)) {
-        folderMap.get(parentId)!.files!.push({
+    const allFiles = filesResponse.data.files || [];
+
+    // Create folder structure
+    const result: DriveFolder[] = folders.map(folder => ({
+      id: folder.id!,
+      name: folder.name!,
+      files: [],
+    }));
+
+    // Add a special "All Files" entry at the beginning containing all files
+    if (allFiles.length > 0) {
+      result.unshift({
+        id: DOCUMENTS_ROOT_FOLDER_ID,
+        name: 'All Documents',
+        files: allFiles.map(file => ({
           id: file.id!,
           name: file.name!,
           mimeType: file.mimeType!,
@@ -196,11 +200,11 @@ export async function getDocumentFolders(): Promise<DriveFolder[]> {
           createdTime: file.createdTime || undefined,
           modifiedTime: file.modifiedTime || undefined,
           size: file.size || undefined,
-        });
-      }
-    });
+        })),
+      });
+    }
 
-    return Array.from(folderMap.values()).slice(0, 20);
+    return result;
   } catch (error) {
     console.error('Error fetching document folders from Google Drive:', error);
     if (DEMO_MODE) {

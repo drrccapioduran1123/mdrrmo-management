@@ -185,7 +185,7 @@ export default function Documents() {
               </div>
 
               <div 
-                className="rounded-xl p-6 lg:col-span-2"
+                className="rounded-xl p-6 lg:col-span-2 max-h-[600px] overflow-y-auto"
                 style={{ background: "rgba(255, 255, 255, 0.05)" }}
               >
                 {selectedFile ? (
@@ -250,11 +250,45 @@ export default function Documents() {
                       )}
                     </div>
                   </div>
+                ) : folders.length > 0 && folders[0].files && folders[0].files.length > 0 ? (
+                  <div className="space-y-4">
+                    <h3 className="font-semibold text-lg mb-4" style={{ color: "#E3D095" }}>
+                      All Documents ({folders[0].files.length})
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {folders[0].files.map(file => {
+                        const fileType = fileTypeIcons[file.mimeType] || { icon: "FILE", color: "#6c757d" };
+                        return (
+                          <button
+                            key={file.id}
+                            onClick={() => setSelectedFile(file)}
+                            className="flex items-center gap-3 p-3 rounded-lg transition-colors hover:bg-white/10 text-left"
+                            style={{ background: "rgba(255, 255, 255, 0.03)" }}
+                          >
+                            <div 
+                              className="w-10 h-10 rounded flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
+                              style={{ background: fileType.color }}
+                            >
+                              {fileType.icon.slice(0, 3)}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-sm truncate" style={{ color: "#E3D095" }}>
+                                {file.name}
+                              </p>
+                              <p className="text-xs" style={{ color: "rgba(227, 208, 149, 0.5)" }}>
+                                {file.size ? `${(parseInt(file.size) / 1024).toFixed(2)} KB` : "Unknown size"}
+                              </p>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
                 ) : (
                   <EmptyState
                     icon={File}
-                    title="Select a document"
-                    description="Choose a document from the folder tree to view its details and content."
+                    title="No documents found"
+                    description="No documents are available in this folder."
                   />
                 )}
               </div>
