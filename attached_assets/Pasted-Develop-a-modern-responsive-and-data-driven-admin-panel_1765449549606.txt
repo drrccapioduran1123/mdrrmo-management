@@ -1,0 +1,54 @@
+Develop a **modern, responsive, and data-driven admin panel** for a dashboard, focusing on seamless integration with Google Sheets as the primary data source. The panel must include the following four core management modules:
+
+### 1. 📦 Supply Inventory Management Module
+
+**Objective:** Provide a comprehensive tool for tracking, updating, and exporting inventory data fetched directly from a specified Google Sheet.
+
+* **Data Source:** Google Sheet (Read/Write)
+* **Core Feature:** Interactive **Table List** displaying all inventory items.
+    * **Data Columns:** Item Name, Category, Location, Stock (Numeric), Status (e.g., In Stock, Low Stock, Out of Stock).
+* **User Actions (CRUD):**
+    * **Add Item:** Implement a **modal form** for adding new items. 
+    * **Edit/Update:** Implement action calls (e.g., icon buttons in the table row) to open an edit modal pre-filled with the item's current details.
+    * **Delete:** Implement an action call with a **confirmation modal** to remove an item from the list and Google Sheet.
+* **Reporting & Utility:**
+    * **Filter/Search:** Implement a robust **multi-field filter/search bar** (e.g., by Item Name and Category).
+    * **Export:** Provide a button to **export the currently viewed table data to a CSV file**.
+    * **Print:** Include a **Print button** to generate a clean, print-friendly version of the table list.
+
+### 2. 🗓️ Calendar Management Module
+
+**Objective:** Allow users to manage both scheduled **Events** and actionable **Tasks** within an integrated calendar view, with data fetched from a Google Sheet.
+
+* **Data Source:** Google Sheet (Read/Write)
+* **Core Feature:** A **combined view** (e.g., a standard calendar grid and a separate task list/view).
+* **User Actions (CRUD) - Events:**
+    * **Add Event (Modal Form):** Event Name, Date, Time, Location, Notes.
+    * **Edit/Delete:** Implement action calls to modify or remove existing events.
+* **User Actions (CRUD) - Tasks:**
+    * **Add Task (Modal Form):** Task Name, Start Date & Time, Deadline Date & Time, Description.
+    * **Edit/Delete:** Implement action calls to modify or remove existing tasks.
+
+### 3. 📞 Contact Management Module
+
+**Objective:** Facilitate easy storage, retrieval, and management of key contact details for agencies and personnel.
+
+* **Data Source:** Google Sheet (Read/Write)
+* **Core Feature:** Interactive **Table List** displaying contact information.
+    * **Data Columns:** Name, Agency, Designation, Phone, Email.
+* **User Actions (CRUD):**
+    * **Add Contact:** Implement a **modal form** for adding new contact details.
+    * **Edit/Delete:** Implement action calls on the table list for modifying or deleting contacts, ensuring data is updated/removed from the Google Sheet.
+
+### 4. 🗺️ Map Management Module
+
+**Objective:** Integrate an interactive map (preferably Google Maps) with tools for dynamic viewing and content overlay management.
+
+* **Core Feature:** Display a dynamic and interactive map using a standard provider (e.g., Google Maps API). 
+* **Utility & Customization:**
+    * **Viewing:** Provide a button/option to view the map in a **Full Screen** mode for better analysis.
+    * **Capture:** Include a function to **save the current view of the interactive map as an image file (e.g., PNG/JPEG)**.
+* **Content Management (Map Frames/Layers):**
+    * **Data Source:** Manage a list of custom map elements (frames, markers, layers) fetched from a Google Sheet.
+    * **CRUD:** Implement actions to **Add, Update, and Delete** map frames/markers/layers from a supporting list, which should dynamically reflect on the map view and update the Google Sheet data.
+
