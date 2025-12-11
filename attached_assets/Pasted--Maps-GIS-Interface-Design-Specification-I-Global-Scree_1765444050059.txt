@@ -1,0 +1,53 @@
+🗺️ Maps/GIS Interface Design Specification
+
+## I. Global Screen Aesthetic and Layout
+
+* **System Name:** MDRRMO Pio Duran Maps
+* **Layout:** The interface must dedicate maximum screen space to the map itself, treating it as the core element. The map control/layer menu (`Interactive Map`, `Topographic Map`, etc.) should be presented as a clean, dismissible, or collapsible sidebar.
+* **The Map Canvas:** The map area must be edge-to-edge, only constrained by the top header and the left-side layer menu.
+
+## II. Sidebar: Layer and View Control (`map.jpg` Enhancement)
+
+The left sidebar serves as the primary control panel for map layers.
+
+* **Aesthetic:** The sidebar should use a semi-transparent, deep-colored background (Glassmorphism effect) to allow the map to slightly show through, adding a sense of depth and modernity.
+* **Layer Organization:** The menu items (`Interactive Map`, `Administrative Map`, etc.) must function as toggle buttons, not just simple links.
+    * **Active State:** The currently active map layer (e.g., "Interactive Map") must be highlighted vividly using the system's primary accent color (e.g., Teal) with a contrasting icon and text.
+    * **Layer Grouping:** Consider adding subtle visual grouping for related layers (e.g., Hazard Maps could be a collapsible group).
+
+### Layer Descriptions and Functionality:
+
+| Layer Name | Design Focus & Purpose |
+| :--- | :--- |
+| **1. Interactive Map** | Default view. Clean basemap with basic points of interest. Includes a **quick search bar** within the map frame for addresses/landmarks. |
+| **2. Administrative Map** | fetch from google drive folder (1Wh2wSQuyzHiz25Vbr4ICETj18RRUEpvi) and the subfolder are collapsible at the sidebar |
+| **3. Topographic Map** | fetch from google drive folder (1Y01dJR_YJdixvsi_B9Xs7nQaXD31_Yn2) and the subfolder are collapsible at the sidebar |
+| **4. Land Use Map** | fetch from google drive folder (1yQmtrKfKiMOFA933W0emzeGoexMpUDGM) and the subfolder are collapsible at the sidebar |
+| **5. Hazards Maps (CRITICAL)** | fetch from google drive folder (16xy_oUAr6sWb3JE9eNrxYJdAMDRKGYLn) and the subfolder are collapsible at the sidebar |
+| **6. Other Map** | fetch from google drive folder (1MI1aO_-gQwsRbSJsfHY2FI4AOz9Jney1) and the subfolder are collapsible at the sidebar |
+| **7. Google Open Map** Display the dropdown list of google iframe map. (example:<iframe src="https://www.google.com/maps/d/embed?mid=1mjXfpYAmLEhG2U2Gu9VWjRdcuI9H4kw&ehbc=2E312F" width="640" height="480"></iframe>, <iframe src="https://www.google.com/maps/d/embed?mid=17JUWx271jjwJNBN2yVStmAPY_Y_iQOg&ehbc=2E312F" width="640" height="480"></iframe>, <iframe src="https://www.google.com/maps/d/embed?mid=1WqlvA465RCv29U-MyWi-1qU1MljXgAU&ehbc=2E312F" width="640" height="480"></iframe>).
+
+**all map fetching on google drive folder it will display the items/files on dashboard content
+
+## IV. Floating Map Tools and Search
+
+To keep the UI clean, essential tools are placed as floating widgets over the map.
+
+* **Floating Menu (Top Right):** A small, circular, icon-based menu that holds secondary tools:
+    1.  **Measurement Tool (Ruler icon):** Allows users to measure distances (important for response radius).
+    2.  **Print/Export (Printer icon):** To quickly generate a PDF of the current map view with active layers.
+    3.  **GPS Locator (Target icon):** Quickly centers the map on the user's current location (`MY_LOCATION`).
+
+* **Search Box (Top Center, within the map):**
+    * **Functionality:** A fast-performing search that suggests places, addresses, and **MDRRMO assets/documents** as the user types (e.g., typing "Torn" could suggest the "Tornado Contingency Plan" document).
+
+## V. Footer/Status Bar
+
+A narrow bar along the bottom edge of the screen to show:
+
+* **Coordinates:** Real-time display of the cursor's geographical coordinates.
+* **Map Data Source:** "Google," "MDRRMO Data," etc.
+
+This design ensures the Maps interface is not only visually appealing but also a mission-critical tool for data analysis and situational awareness during emergency response.
+
+===============

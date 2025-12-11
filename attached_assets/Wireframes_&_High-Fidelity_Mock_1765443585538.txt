@@ -1,0 +1,334 @@
+# ✨ Wireframes & High-Fidelity Mockup Specifications
+
+## I. 🏠 Main Dashboard Design: High-Fidelity Mockup
+
+The goal is to create six visually stunning, highly scannable cards, grounded in a deep-tone background, using the principles of subtle depth and clear hierarchy.
+
+### A. Global Elements
+
+* **Background:** Deep Navy/Indigo (`#1A1E32`).
+* **Header:** Slim top bar with LGU logo (Left), System Title (MDRRMO PIO DURAN File Inventory and Management System), and a subtle **User Profile/Status** icon (Right).
+* **Grid Layout:** A clean 2x3 grid, ensuring generous padding and margin around each card.
+
+### B. Module Card Specifications (The Six Pillars)
+
+Supply Inventory (button color: Blue/Teal)
+
+Calendar of Activities (button color: Green/Lime)
+
+Contact List (button color: Purple/Violet)
+
+Document (button color: Orange/Amber)
+
+Photo Gallery (button color: Red/Crimson)
+
+Maps (button color: Pink/Magenta)
+================================
+
+## II. 📦 Supply Inventory Dashboard Design: High-Fidelity 
+fetch on google sheet: https://docs.google.com/spreadsheets/d/11uutE9iZ2BjddbFkeX9cQVFOouphdvyP000vh1lGOo4/edit?usp=sharing
+Sheet1 column:  Item-Name, Item-Description, Item-Category, Item-Location, Current-Stock, Item-Unit, Item-Status
+
+The design must prioritize data clarity, scan ability, and efficient item management.
+
+### A. Inventory Summary (The Stats Bar)
+
+* **Layout:** Positioned prominently above the main table.
+* **Card Style:** Each of the four summary metrics is housed in a clean, rounded rectangular card, using its respective status color.
+* **Visual Data Integration:**
+    * **Total Items (`#007BFF`):** Large number, small text label.
+    * **In Stock (`#28A745`):** Includes a small, subtle **green checkmark icon** or a mini bar chart showing (4/5) ratio.
+    * **Low Stock (`#FFC107`):** Includes a **small, prominent warning icon** (triangle).
+    * **Out of Stock (`#DC3545`):** Displays a large **"0"** with a distinct red background.
+
+### B. Inventory Management Table (List View)
+
+* **Table Structure:** Utilize a clean, borderless grid structure with distinct, well-padded cells.
+* **Header Row:** The column headers should use a **slightly lighter background color** than the data rows for visual separation and employ a clean, modern font weight.
+* **Key Design Features:**
+    * **Status Indicators (The Pills):** The `Status` column must feature custom, rounded "pills" for each state:
+        * **In Stock:** Solid Green Pill (`#28A745` background, white text).
+        * **Low Stock:** Solid Yellow Pill (`#FFC107` background, dark text).
+        * **Out of Stock:** Solid Red Pill (`#DC3545` background, white text).
+   * **Search/Tools Bar:**
+    * **Search:** A prominent, rounded search bar with a clear magnifying glass icon.
+    * **Primary Actions:** The **`Print`** button should be the primary action, using the system's core accent color (e.g., Teal/Cyan) and a slightly elevated shadow for prominence. **`EXPORT CSV`** and **`REFRESH`** are secondary, utilizing lighter, outline-style buttons.
+
+================
+
+# 📅 Calendar of Activities Design Specification
+fetch on google sheet: https://docs.google.com/spreadsheets/d/11uutE9iZ2BjddbFkeX9cQVFOouphdvyP000vh1lGOo4/edit?usp=sharing
+Sheet2 column:  (Event Name, Date, Time, Location, Notes) (Task Name, Date & Time, Deadline Date & Time, Description)
+ 	
+## I. Global Screen Aesthetic
+
+* **Background:** Maintain the deep Navy/Indigo background (`#1A1E32`).
+* **Structure:** The screen will be organized into two primary, distinct tables fetch from google sheet:
+    1.  **Event List & Task List Schedule:** For events with defined (Event Name, Date, Time, Location, Notes) for task defined (Task Name, Date & Time, Deadline Date & Time, Description).
+    2.  **Monthly Calendar View:** For quick navigation and visualization of busy days.
+* **Separation:** Use horizontal separators to visually delineate the Event List & Task List Schedule.
+
+### A. Monthly Navigator
+
+* **Design:** Replace the basic arrows and month name with a custom-designed control (e.g., a "pill-shaped" container) for June 2025.
+* **Interaction:** Smooth, click-activated chevrons to navigate months. The current month should be clearly highlighted.
+
+### B. Event/Activity Schedule Table
+
+| Column | Design Focus | Priority Color Coding |
+| :--- | :--- | :--- |
+| **Event Name** | Bold typography; use an emoji or small icon relevant to the event type (e.g., 🚨 for a drill, 🤝 for a meeting). | N/A |
+| **Date** | Standard, clean format (e.g., **Dec 15, 2025**). | N/A |
+| **Time** | Use a smaller, subdued font. | N/A |
+| **Location** | Link-style appearance to suggest interactivity (potential map integration). | N/A |
+| **Notes** | **Summary Preview:** Show only the first 50 characters, with an ellipsis, requiring a click/hover for the full description. | **Color Dot System:** A small, left-aligned dot (or pill) next to the Event Name to indicate priority: **High (Red), Medium (Orange), Low (Blue).** |
+
+
+### C. Task Schedule Table (For internal, non-event tasks)
+
+This table should be visually distinct from the Event Schedule, using the **Violet/Purple** color palette from the main dashboard for its header.
+
+| Column | Design Focus | Priority Color Coding |
+| :--- | :--- | :--- |
+| **Task Name** | Clear and concise. | N/A |
+| **Date & Time** | Planned initiation date/time. | N/A |
+| **Deadline Date & Time** | **Critical Information:** Use bold, high-contrast text. | **Status Chip:** Use a **Status Chip** (e.g., `Upcoming`, `Overdue`, `Complete`). The `Overdue` chip must flash subtly or be bright red. |
+| **Description** | Short summary preview. | N/A |
+
+## III. 🗓️ Calendar View Widget (New Feature)
+
+To provide a visual overview, a compact monthly calendar widget should be incorporated, perhaps in a sidebar or directly above the Activity Schedule.
+
+* **Aesthetic:** Clean, minimalist grid.
+* **Highlighting:**
+    * **Current Day:** Circle the current date with a vibrant ring (e.g., the Teal accent color).
+    * **Event Days:** Days with scheduled events or tasks must feature a small, colored dot below the date number. If the day has both high and low-priority events, show a small stack of dots.
+* **Interaction:** Clicking a date in the widget should instantly filter the **Activity & Task Schedule tables** below to show only items for that specific date.
+
+
+==================
+
+
+# 🗺️ Maps/GIS Interface Design Specification
+
+## I. Global Screen Aesthetic and Layout
+
+* **System Name:** MDRRMO Pio Duran Maps
+* **Layout:** The interface must dedicate maximum screen space to the map itself, treating it as the core element. The map control/layer menu (`Interactive Map`, `Topographic Map`, etc.) should be presented as a clean, dismissible, or collapsible sidebar.
+* **The Map Canvas:** The map area must be edge-to-edge, only constrained by the top header and the left-side layer menu.
+
+## II. Sidebar: Layer and View Control (`map.jpg` Enhancement)
+
+The left sidebar serves as the primary control panel for map layers.
+
+* **Aesthetic:** The sidebar should use a semi-transparent, deep-colored background (Glassmorphism effect) to allow the map to slightly show through, adding a sense of depth and modernity.
+* **Layer Organization:** The menu items (`Interactive Map`, `Administrative Map`, etc.) must function as toggle buttons, not just simple links.
+    * **Active State:** The currently active map layer (e.g., "Interactive Map") must be highlighted vividly using the system's primary accent color (e.g., Teal) with a contrasting icon and text.
+    * **Layer Grouping:** Consider adding subtle visual grouping for related layers (e.g., Hazard Maps could be a collapsible group).
+
+### Layer Descriptions and Functionality:
+
+| Layer Name | Design Focus & Purpose |
+| :--- | :--- |
+| **1. Interactive Map** | Default view. Clean basemap with basic points of interest. Includes a **quick search bar** within the map frame for addresses/landmarks. |
+| **2. Administrative Map** | fetch from google drive folder (1Wh2wSQuyzHiz25Vbr4ICETj18RRUEpvi) and the subfolder are collapsible at the sidebar |
+| **3. Topographic Map** | fetch from google drive folder (1Y01dJR_YJdixvsi_B9Xs7nQaXD31_Yn2) and the subfolder are collapsible at the sidebar |
+| **4. Land Use Map** | fetch from google drive folder (1yQmtrKfKiMOFA933W0emzeGoexMpUDGM) and the subfolder are collapsible at the sidebar |
+| **5. Hazards Maps (CRITICAL)** | fetch from google drive folder (16xy_oUAr6sWb3JE9eNrxYJdAMDRKGYLn) and the subfolder are collapsible at the sidebar |
+| **6. Other Map** | fetch from google drive folder (1MI1aO_-gQwsRbSJsfHY2FI4AOz9Jney1) and the subfolder are collapsible at the sidebar |
+| **7. Google Open Map** Display the dropdown list of google iframe map. (example:<iframe src="https://www.google.com/maps/d/embed?mid=1mjXfpYAmLEhG2U2Gu9VWjRdcuI9H4kw&ehbc=2E312F" width="640" height="480"></iframe>, <iframe src="https://www.google.com/maps/d/embed?mid=17JUWx271jjwJNBN2yVStmAPY_Y_iQOg&ehbc=2E312F" width="640" height="480"></iframe>, <iframe src="https://www.google.com/maps/d/embed?mid=1WqlvA465RCv29U-MyWi-1qU1MljXgAU&ehbc=2E312F" width="640" height="480"></iframe>).
+
+
+## IV. Floating Map Tools and Search
+
+To keep the UI clean, essential tools are placed as floating widgets over the map.
+
+* **Floating Menu (Top Right):** A small, circular, icon-based menu that holds secondary tools:
+    1.  **Measurement Tool (Ruler icon):** Allows users to measure distances (important for response radius).
+    2.  **Print/Export (Printer icon):** To quickly generate a PDF of the current map view with active layers.
+    3.  **GPS Locator (Target icon):** Quickly centers the map on the user's current location (`MY_LOCATION`).
+
+* **Search Box (Top Center, within the map):**
+    * **Functionality:** A fast-performing search that suggests places, addresses, and **MDRRMO assets/documents** as the user types (e.g., typing "Torn" could suggest the "Tornado Contingency Plan" document).
+
+## V. Footer/Status Bar
+
+A narrow bar along the bottom edge of the screen to show:
+
+* **Coordinates:** Real-time display of the cursor's geographical coordinates.
+* **Map Data Source:** "Google," "MDRRMO Data," etc.
+
+This design ensures the Maps interface is not only visually appealing but also a mission-critical tool for data analysis and situational awareness during emergency response.
+
+===============
+
+
+# 📄 Document File Management Design Specification
+fetch on google drive folder using id folder and api:
+folder id:https://drive.google.com/drive/folders/15_xiFeXu_vdIe2CYrjGaRCAho2OqhGvo?usp=sharing
+
+## I. Global Screen Aesthetic and Structure
+
+* **Background:** Maintain the consistent deep Navy/Indigo background (`#1A1E32`).
+* **Layout:** A two-pane design is essential:
+    1.  **Navigation Sidebar (Left):** show the sub folder and sub folder child of google drive folder (15_xiFeXu_vdIe2CYrjGaRCAho2OqhGvo) as a button.
+    2.  **Content Area (Right):** For displaying documents, files in a category and scannable grid/list view.
+
+## II. Sidebar: Navigation
+
+The sidebar must provide a clear hierarchical structure for file access.
+
+* **Folder Tree:** Implement an intuitive, modern folder tree structure (like a stylized file explorer).
+    * **Main Navigation:** `sub folder from google drive folder`.
+    * **Sub Navigation:** `a collapsible child sub folder from google drive sub folder`.
+    * **Active State:** The currently selected folder/category must be clearly highlighted with the system's secondary accent color (e.g., Green or Teal) to show the user's location immediately.
+
+## III. Content Area: Search, Sorting, and Display
+
+### A. Advanced Search and Filtering
+
+* **Search Bar:** A prominent, clean search bar (`Search Files...`) at the top of the content area.
+    * **Intelligent Search:** The system should support basic full-text search and should be optimized to pull metadata from MDRRMO forms and reports.
+* **Filter/Sort Controls:** Positioned adjacent to the search bar.
+    * **Sort By:** Use a clean dropdown (e.g., **`Sort by Name`**, **`Date Modified`**, **`File Type`**).
+    * **View Toggle:** A toggle to switch between **Grid View** (visual icons/thumbnails for browsing) and **List View** (more detail-oriented, tabular view for scanning file properties).
+
+### B. Document Card Design (Grid View)
+
+* **Aesthetic:** Documents are presented as sleek, custom cards, deliberately avoiding generic operating system file icons.
+* **File Type Visualization:**
+    * **Word/DOCX:** Use a custom icon with the file type extension displayed clearly (e.g., Orange/Amber color theme).
+    * **PDF:** Use a custom icon with a red/crimson theme.
+    * **Spreadsheet/XLSX:** Use a custom icon with a green theme.
+* **Card Information:** Each card displays:
+    * File Type Icon/Preview.
+    * Full File Name (truncated with ellipsis if too long).
+    * Small metadata line (e.g., `Date Modified: 12/10/2025` or `Author: J. Cruz`).
+* **Interaction:** A subtle animation or color change on hover, and a click should open a secure in-app preview or initiate download/edit options.
+
+
+##  File Action Management
+
+When a user selects one or more documents (via a small checkbox on the card/row), a non-intrusive **Action Bar** must appear (e.g., a slim bar that slides down from the top or floats above the content).
+
+* **Action Bar Contents:**
+    * **`Download`**
+    * **`Share`** (Internal/Email)
+    * **`Move to...`** (Folder selector)
+    * **`Delete`** (High-contrast red icon/button)
+
+## V. Custom MDRRMO Form Generation (New Feature)
+
+================
+
+
+# ☎️ Contact Directory Design Specification
+
+## I. Global Screen Aesthetic and Organization
+fetch on google sheet: https://docs.google.com/spreadsheets/d/11uutE9iZ2BjddbFkeX9cQVFOouphdvyP000vh1lGOo4/edit?usp=sharing
+Sheet3 column:  Status Indicator, Contact Name, Role/Title, Agency, Primary Phone
+
+
+* **Background:** Maintain the consistent deep Navy/Indigo background (`#1A1E32`).
+* **Goal:** The design must allow users to locate a contact, agency, or specific emergency number in under three seconds. The layout is optimized for rapid scanning.
+* **Structure:** Primarily composed of four key sections:
+    1.  **Summary Statistics** (Top Banner).
+    2.  **Search & Filter Tools**.
+    3.  **Directory View** (The main list/grid of contacts).
+
+## II. Summary Statistics & Contact Cards (`contact information.jpg` Enhancement)
+
+The four summary metric cards must be prominent and visually reinforcing.
+
+* **Card Design:** Use large, clear, custom icons and a font size that makes the zero-state (or current count) instantly readable.
+* **Interaction:** These cards can also function as quick filters (e.g., clicking the "Agencies" card filters the main directory to show only agencies).
+
+| Metric | Card Color/Icon Theme |
+| :--- | :--- |
+| **Total Contacts** | Primary Accent Color (Teal) / User Icon |
+| **Agencies** | Secondary Accent Color (Lime Green) / Building Icon |
+| **Phone Numbers** | Violet/Purple / Phone Icon |
+| **Email Addresses** | Amber/Orange / Envelope Icon |
+
+## III. Search, Filtering, and Sorting
+
+The tools needed for quick contact retrieval must be intuitive and powerful.
+
+* **Intelligent Search:** The search bar (`Search contacts by name, agency, or role...`) should be prominent and support partial matching and auto-suggestions.
+* **Critical Filters:** Implement quick-access filter buttons (or a stylized dropdown) positioned near the search bar:
+    * **Filter by Role:** (e.g., *MDRRMO Head, First Responder, Logistics*).
+    * **Filter by Priority Level:** (e.g., *Level 1: Critical Emergency, Level 2: Support*).
+    * **Filter by Status:** (e.g., *Active, On Leave*).
+* **Sorting:** Default sort should be by **Name (A-Z)**, with options for sorting by **Agency** or **Last Updated**.
+
+## IV. Directory View (The Main List)
+
+The contacts must be presented in a clean, high-density list view for efficient scanning.
+
+* **Row Styling:** Each contact should occupy a clean, horizontally-oriented "Contact Row Card" with minimal separators, focusing on white space for readability.
+* **Key Information Display (Left-to-Right):**
+    1.  **Status Indicator:** A small, circular colored badge (Green for available, Red for emergency contact, Yellow for advisory role) placed next to the contact name.
+    2.  **Contact Name:** Clear and bolded.
+    3.  **Role/Title:** Subdued, smaller text under the name.
+    4.  **Agency:** Prominent display of the associated agency (e.g., *PNP, BFP, LGU Health*).
+    5.  **Primary Phone:** The most critical number, displayed clearly.
+    6.  **Action Icons:** Small, non-text icons for **`Call`** and **`Email`** on the far right.
+
+### Emergency Contact Feature (Highlighting)
+
+* **Design:** Contacts marked as **Critical Emergency** must be instantly recognizable. This can be achieved by giving the entire row a subtle red border or a distinct, slightly darker background tint.
+* **Functionality:** A dedicated filter/toggle to show only **Emergency Contacts** should be the first option available.
+
+
+=================================
+
+
+# 📸 Photo Documentation Design Specification
+fetch on google drive folder using id folder and api:
+folder id:https://drive.google.com/drive/folders/1O1WlCjMvZ5lVcrOIGNMlBY4ZuQ-zEarg?usp=sharing
+
+## I. Global Screen Aesthetic and Structure
+
+* **Background:** Maintain the deep Navy/Indigo background (`#1A1E32`).
+* **Aesthetic Goal:** Create a visually pleasing gallery experience that makes browsing and locating specific operational photos intuitive.
+* **Layout:** A sidebar-content structure is maintained, consistent with the File Management module:
+    1.  **Sidebar (Left):** show the sub folder and sub folder child of google drive folder (1O1WlCjMvZ5lVcrOIGNMlBY4ZuQ-zEarg) as a button.
+    2.  **Content Area (Right):** The photo gallery grid and search tools.
+
+## II. Sidebar: Operational Categories (main google drive folder -> sub folder parent -> sub folder child)
+
+
+## III. Content Area: Gallery View and Tools
+
+### A. Title and Description
+
+* **Prominent Header:** Display the currently selected sub folder (e.g., **Accident Response**) clearly.
+* **Description:** Include a brief description below the title to clarify the context of the photos (e.g., *Responders assisting victims and securing the scene.*).
+
+### B. Search, Sorting
+* **Search Bar:** A clean search bar (`Search photos...`) focused on metadata and tags (e.g., searching by *date, location, equipment used*).
+* **Sorting Controls:** A dropdown for sorting photos by **Date (Newest/Oldest)**, **Location**, or **Upload Time**.
+
+
+### C. Photo Grid and Display
+
+* **Grid Layout:** Photos must be displayed in a responsive, customizable **Masonry or Uniform Grid** layout that maximizes visual impact.
+* **Image Cards:** Each photo should be represented by a clean card with essential overlay information:
+    * **Image Quality:** Ensure high-resolution previews load quickly (lazy loading implementation required).
+    * **Overlay:** A subtle, translucent dark gradient at the bottom of the image card on hover.
+    * **Metadata Display (On Hover):** When hovering, key metadata should appear on the overlay: **Date Taken**, **Location Tag**, and relevant **Tags** (e.g., *Vehicle Extrication, Ropes, Night Operation*).
+    * **Selection:** A small, discrete checkbox or icon in the corner to enable bulk selection.
+* **Subfolder Handling:** If the user clicks on the `sub folder`, the view should switch to display a grid of **image thumbnails** 
+
+## IV. Photo Interaction and Action Management
+
+### A. Lightbox View
+
+* Clicking any photo should launch a **full-screen Lightbox/Modal view**.
+* **Features within Lightbox:**
+    * High-resolution zoom.
+    * Navigation arrows to cycle through all photos in the current category.
+    * Prominent display of all associated metadata (location, date, time, detailed description).
+    * **Action Icons:** `Download`, `copy`.
+** all ".webp" will be open on Panorama/360 viewer
+---
