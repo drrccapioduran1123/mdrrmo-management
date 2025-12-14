@@ -6,6 +6,7 @@ import {
   Check,
   ExternalLink,
   Image as ImageIcon,
+  Printer,
 } from "lucide-react";
 import type { GalleryImage } from "@shared/schema";
 
@@ -42,6 +43,44 @@ export function ImageModal({
       } catch (err) {
         console.error("Failed to copy link: ", err);
       }
+    }
+  };
+
+  const handlePrint = () => {
+    const printWindow = window.open("", "_blank");
+    if (printWindow) {
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>Print - ${image.name}</title>
+            <style>
+              body {
+                margin: 0;
+                padding: 20px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                min-height: 100vh;
+                background: white;
+              }
+              img {
+                max-width: 100%;
+                max-height: 100vh;
+                object-fit: contain;
+              }
+              @media print {
+                body { padding: 0; }
+                img { max-height: none; }
+              }
+            </style>
+          </head>
+          <body>
+            <img src="/api/gallery/images/${image.id}/content" alt="${image.name}" onload="window.print(); window.close();" />
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
     }
   };
 
@@ -214,6 +253,15 @@ export function ImageModal({
               <Download className="w-4 h-4" />
               Download
             </a>
+
+            <button
+              onClick={handlePrint}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-all bg-green-600 hover:bg-green-700 text-white shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+              data-testid="button-print-image"
+            >
+              <Printer className="w-4 h-4" />
+              Print
+            </button>
 
             {image.webViewLink && (
               <>

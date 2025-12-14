@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
@@ -21,11 +21,7 @@ import {
 } from "lucide-react";
 import type { DriveFolder, DriveFile } from "@shared/schema";
 
-const API_KEY = "AIzaSyCDcthLGNPlbMr4AFzuK5tl0CMTzsQI9EI";
-const ROOT_FOLDER_ID = "15_xiFeXu_vdIe2CYrjGaRCAho2OqhGvo";
-
 const fileTypeIcons: Record<string, { icon: string; color: string }> = {
-  // Word Documents
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document": {
     icon: "DOCX",
     color: "#2B579A",
@@ -46,8 +42,6 @@ const fileTypeIcons: Record<string, { icon: string; color: string }> = {
     icon: "DOTM",
     color: "#2B579A",
   },
-
-  // Excel Spreadsheets
   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
     icon: "XLSX",
     color: "#217346",
@@ -64,8 +58,6 @@ const fileTypeIcons: Record<string, { icon: string; color: string }> = {
     icon: "XLTX",
     color: "#217346",
   },
-
-  // PowerPoint Presentations
   "application/vnd.openxmlformats-officedocument.presentationml.presentation": {
     icon: "PPTX",
     color: "#D24726",
@@ -82,8 +74,6 @@ const fileTypeIcons: Record<string, { icon: string; color: string }> = {
     icon: "POTX",
     color: "#D24726",
   },
-
-  // Other Documents
   "application/pdf": {
     icon: "PDF",
     color: "#DC3545",
@@ -96,8 +86,6 @@ const fileTypeIcons: Record<string, { icon: string; color: string }> = {
     icon: "CSV",
     color: "#217346",
   },
-
-  // Default
   default: {
     icon: "FILE",
     color: "#6c757d",
@@ -153,60 +141,44 @@ const documentTypeGroups = {
   },
 };
 
+interface SubfolderInfo {
+  id: string;
+  name: string;
+}
+
 interface SidebarFolderItemProps {
   folderId: string;
+  folderName: string;
   level: number;
   expandedFolders: Set<string>;
   selectedFolderId: string | null;
+  subfolderCache: Map<string, SubfolderInfo[]>;
   onToggleExpand: (folderId: string) => void;
-  onSelectFolder: (folderId: string) => void;
+  onSelectFolder: (folderId: string, folderName: string) => void;
 }
 
 function SidebarFolderItem({
   folderId,
+  folderName,
   level,
   expandedFolders,
   selectedFolderId,
+  subfolderCache,
   onToggleExpand,
   onSelectFolder,
 }: SidebarFolderItemProps) {
   const isExpanded = expandedFolders.has(folderId);
   const isSelected = selectedFolderId === folderId;
-
-  // Fetch folder name
-  const { data: folderName = "Untitled Folder" } = useQuery<string>({
-    queryKey: ["folderName", folderId],
-    queryFn: async () => {
-      const url = `https://www.googleapis.com/drive/v3/files/${folderId}?key=${API_KEY}&fields=name`;
-      const response = await fetch(url);
-      const data = await response.json();
-      return data.name || "Untitled Folder";
-    },
-  });
-
-  // Fetch subfolders when expanded
-  const { data: subfolders = [], isLoading: subfoldersLoading } = useQuery<
-    { id: string }[]
-  >({
-    queryKey: ["subfolders", folderId],
-    queryFn: async () => {
-      if (!isExpanded) return [];
-
-      const url = `https://www.googleapis.com/drive/v3/files?q='${folderId}'+in+parents+and+mimeType='application/vnd.google-apps.folder'+and+trashed=false&key=${API_KEY}&fields=files(id)`;
-      const response = await fetch(url);
-      const data = await response.json();
-      return data.files || [];
-    },
-    enabled: isExpanded,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
+  const subfolders = subfolderCache.get(folderId) || [];
 
   return (
     <div>
       <button
         onClick={() => {
-          onToggleExpand(folderId);
-          onSelectFolder(folderId);
+          onSelectFolder(folderId, folderName);
+          if (subfolders.length > 0 || !subfolderCache.has(folderId)) {
+            onToggleExpand(folderId);
+          }
         }}
         className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
           isSelected ? "bg-[#FFEAA7]/30" : "hover:bg-white/10"
@@ -214,10 +186,14 @@ function SidebarFolderItem({
         style={{ paddingLeft: `${12 + level * 16}px`, color: "#5D4037" }}
         data-testid={`folder-${folderId}`}
       >
-        {isExpanded ? (
-          <ChevronDown className="w-4 h-4" />
+        {subfolders.length > 0 ? (
+          isExpanded ? (
+            <ChevronDown className="w-4 h-4" />
+          ) : (
+            <ChevronRight className="w-4 h-4" />
+          )
         ) : (
-          <ChevronRight className="w-4 h-4" />
+          <span className="w-4" />
         )}
         {isExpanded ? (
           <FolderOpen className="w-5 h-5" style={{ color: "#D68A3D" }} />
@@ -227,25 +203,21 @@ function SidebarFolderItem({
         <span className="font-medium text-sm truncate">{folderName}</span>
       </button>
 
-      {isExpanded && (
+      {isExpanded && subfolders.length > 0 && (
         <div>
-          {subfoldersLoading ? (
-            <div className="flex justify-center py-2">
-              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-            </div>
-          ) : (
-            subfolders.map((subfolder) => (
-              <SidebarFolderItem
-                key={subfolder.id}
-                folderId={subfolder.id}
-                level={level + 1}
-                expandedFolders={expandedFolders}
-                selectedFolderId={selectedFolderId}
-                onToggleExpand={onToggleExpand}
-                onSelectFolder={onSelectFolder}
-              />
-            ))
-          )}
+          {subfolders.map((subfolder) => (
+            <SidebarFolderItem
+              key={subfolder.id}
+              folderId={subfolder.id}
+              folderName={subfolder.name}
+              level={level + 1}
+              expandedFolders={expandedFolders}
+              selectedFolderId={selectedFolderId}
+              subfolderCache={subfolderCache}
+              onToggleExpand={onToggleExpand}
+              onSelectFolder={onSelectFolder}
+            />
+          ))}
         </div>
       )}
     </div>
@@ -276,7 +248,6 @@ function isDocumentFile(mimeType: string, fileName: string): boolean {
     return true;
   }
 
-  // Also check by file extension for cases where MIME type isn't sufficient
   const documentExtensions = [
     ".docx",
     ".doc",
@@ -301,12 +272,10 @@ function isDocumentFile(mimeType: string, fileName: string): boolean {
 }
 
 function getFileTypeConfig(mimeType: string, fileName: string) {
-  // First check by MIME type
   if (fileTypeIcons[mimeType]) {
     return fileTypeIcons[mimeType];
   }
 
-  // Then check by file extension
   const extension = fileName.split(".").pop()?.toLowerCase() || "";
   switch (extension) {
     case "docx":
@@ -363,7 +332,6 @@ function getFileTypeConfig(mimeType: string, fileName: string) {
 function getDocumentType(mimeType: string, fileName: string): string {
   const lowerFileName = fileName.toLowerCase();
 
-  // Check Word documents
   if (
     documentTypeGroups.word.mimeTypes.includes(mimeType) ||
     documentTypeGroups.word.extensions.some((ext) =>
@@ -373,7 +341,6 @@ function getDocumentType(mimeType: string, fileName: string): string {
     return "word";
   }
 
-  // Check Excel documents
   if (
     documentTypeGroups.excel.mimeTypes.includes(mimeType) ||
     documentTypeGroups.excel.extensions.some((ext) =>
@@ -383,7 +350,6 @@ function getDocumentType(mimeType: string, fileName: string): string {
     return "excel";
   }
 
-  // Check PowerPoint documents
   if (
     documentTypeGroups.powerpoint.mimeTypes.includes(mimeType) ||
     documentTypeGroups.powerpoint.extensions.some((ext) =>
@@ -393,7 +359,6 @@ function getDocumentType(mimeType: string, fileName: string): string {
     return "powerpoint";
   }
 
-  // Check PDF documents
   if (
     documentTypeGroups.pdf.mimeTypes.includes(mimeType) ||
     documentTypeGroups.pdf.extensions.some((ext) => lowerFileName.endsWith(ext))
@@ -401,7 +366,6 @@ function getDocumentType(mimeType: string, fileName: string): string {
     return "pdf";
   }
 
-  // Check Text documents
   if (
     documentTypeGroups.text.mimeTypes.includes(mimeType) ||
     documentTypeGroups.text.extensions.some((ext) =>
@@ -430,50 +394,30 @@ export default function Documents() {
     new Set(),
   );
   const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
+  const [selectedFolderName, setSelectedFolderName] = useState<string>("Documents");
   const [selectedFile, setSelectedFile] = useState<DriveFile | null>(null);
+  const [subfolderCache, setSubfolderCache] = useState<Map<string, SubfolderInfo[]>>(new Map());
 
-  // Fetch root folders
-  const { data: rootFolders = [], isLoading: foldersLoading } = useQuery<
-    { id: string }[]
-  >({
-    queryKey: ["rootFolders", ROOT_FOLDER_ID],
-    queryFn: async () => {
-      const url = `https://www.googleapis.com/drive/v3/files?q='${ROOT_FOLDER_ID}'+in+parents+and+mimeType='application/vnd.google-apps.folder'+and+trashed=false&key=${API_KEY}&fields=files(id)`;
-      const response = await fetch(url);
-      const data = await response.json();
-      return data.files || [];
-    },
-    staleTime: 5 * 60 * 1000, // 5 minutes
+  const { data: documentFolders = [], isLoading: foldersLoading } = useQuery<DriveFolder[]>({
+    queryKey: ["/api/documents"],
+    staleTime: 5 * 60 * 1000,
   });
 
-  // Fetch files for selected folder
-  const { data: files = [], isLoading: filesLoading } = useQuery<DriveFile[]>({
-    queryKey: ["files", selectedFolderId],
-    queryFn: async () => {
-      if (!selectedFolderId) return [];
-
-      const url = `https://www.googleapis.com/drive/v3/files?q='${selectedFolderId}'+in+parents+and+trashed=false&key=${API_KEY}&fields=files(id,name,mimeType,webContentLink,webViewLink,size,modifiedTime)`;
-      const response = await fetch(url);
-      const data = await response.json();
-      return data.files || [];
-    },
+  const { data: folderContents, isLoading: filesLoading } = useQuery<DriveFolder>({
+    queryKey: ["/api/documents/folder", selectedFolderId],
     enabled: !!selectedFolderId,
-    staleTime: 2 * 60 * 1000, // 2 minutes
+    staleTime: 2 * 60 * 1000,
   });
 
-  // Fetch folder name for display
-  const { data: selectedFolderName = "Documents" } = useQuery<string>({
-    queryKey: ["folderName", selectedFolderId],
-    queryFn: async () => {
-      if (!selectedFolderId) return "Documents";
+  useEffect(() => {
+    if (folderContents?.subfolders && selectedFolderId && !subfolderCache.has(selectedFolderId)) {
+      const newCache = new Map(subfolderCache);
+      newCache.set(selectedFolderId, folderContents.subfolders);
+      setSubfolderCache(newCache);
+    }
+  }, [folderContents, selectedFolderId]);
 
-      const url = `https://www.googleapis.com/drive/v3/files/${selectedFolderId}?key=${API_KEY}&fields=name`;
-      const response = await fetch(url);
-      const data = await response.json();
-      return data.name || "Documents";
-    },
-    enabled: !!selectedFolderId,
-  });
+  const files = folderContents?.files || [];
 
   const toggleFolderExpand = (folderId: string) => {
     const newExpanded = new Set(expandedFolders);
@@ -485,19 +429,18 @@ export default function Documents() {
     setExpandedFolders(newExpanded);
   };
 
-  const handleSelectFolder = (folderId: string) => {
+  const handleSelectFolder = (folderId: string, folderName: string) => {
     setSelectedFolderId(folderId);
+    setSelectedFolderName(folderName);
     setSelectedFile(null);
   };
 
-  // Filter document files only
   const documentFiles = files
     .filter((file) => isDocumentFile(file.mimeType || "", file.name || ""))
     .filter((file) =>
       file.name?.toLowerCase().includes(searchQuery.toLowerCase()),
     );
 
-  // Group files by document type
   const groupedFiles = documentFiles.reduce(
     (acc, file) => {
       const docType = getDocumentType(file.mimeType || "", file.name || "");
@@ -573,7 +516,7 @@ export default function Documents() {
 
                 {foldersLoading ? (
                   <LoadingSpinner size="sm" />
-                ) : rootFolders.length === 0 ? (
+                ) : documentFolders.length === 0 ? (
                   <p
                     className="text-sm text-center py-8"
                     style={{ color: "rgba(93, 64, 55, 0.7)" }}
@@ -582,13 +525,15 @@ export default function Documents() {
                   </p>
                 ) : (
                   <div className="space-y-1">
-                    {rootFolders.map((folder) => (
+                    {documentFolders.map((folder) => (
                       <SidebarFolderItem
                         key={folder.id}
                         folderId={folder.id}
+                        folderName={folder.name}
                         level={0}
                         expandedFolders={expandedFolders}
                         selectedFolderId={selectedFolderId}
+                        subfolderCache={subfolderCache}
                         onToggleExpand={toggleFolderExpand}
                         onSelectFolder={handleSelectFolder}
                       />
@@ -795,7 +740,7 @@ export default function Documents() {
                                             </div>
                                           </div>
                                           <h3
-                                            className="font-semibold text-white text-center truncate text-sm"
+                                            className="font-semibold text-center truncate text-sm"
                                             style={{ color: "#5D4037" }}
                                           >
                                             {file.name}
@@ -826,7 +771,6 @@ export default function Documents() {
                           },
                         )}
 
-                        {/* Handle uncategorized files */}
                         {groupedFiles.other &&
                           groupedFiles.other.length > 0 && (
                             <div>
@@ -874,7 +818,7 @@ export default function Documents() {
                                           </div>
                                         </div>
                                         <h3
-                                          className="font-semibold text-white text-center truncate text-sm"
+                                          className="font-semibold text-center truncate text-sm"
                                           style={{ color: "#5D4037" }}
                                         >
                                           {file.name}
@@ -909,7 +853,7 @@ export default function Documents() {
                   <EmptyState
                     icon={Folder}
                     title="Select a folder"
-                    description="Choose a folder from the folder tree to view its documents."
+                    description="Choose a folder from the sidebar to view its documents."
                   />
                 )}
               </div>

@@ -381,6 +381,18 @@ export async function registerRoutes(
     }
   });
 
+  // Get document folder contents (files and subfolders)
+  app.get("/api/documents/folder/:folderId", async (req, res) => {
+    try {
+      const { folderId } = req.params;
+      const folder = await getSubfolderContents(folderId);
+      res.json(folder);
+    } catch (error) {
+      console.error("Error fetching document folder:", error);
+      res.status(500).json({ error: "Failed to fetch document folder" });
+    }
+  });
+
   // Gallery API endpoints
   app.get("/api/gallery/folders", async (req, res) => {
     try {
@@ -478,6 +490,18 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error getting image content:", error);
       res.status(500).json({ error: "Failed to get image content" });
+    }
+  });
+
+  // Get gallery subfolder contents
+  app.get("/api/gallery/subfolder/:folderId", async (req, res) => {
+    try {
+      const { folderId } = req.params;
+      const folder = await getSubfolderContents(folderId);
+      res.json(folder);
+    } catch (error) {
+      console.error("Error fetching gallery subfolder:", error);
+      res.status(500).json({ error: "Failed to fetch gallery subfolder" });
     }
   });
 
