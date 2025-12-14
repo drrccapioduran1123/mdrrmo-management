@@ -1,5 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import multer from "multer";
 import { 
   getInventoryItems, 
   addInventoryItem, 
@@ -22,9 +23,29 @@ import {
   updateMapFrame,
   deleteMapFrame
 } from "./google-sheets";
-import { getDocumentFolders, getGalleryFolders, getGalleryImages, deleteGalleryImages, renameGalleryImage, getAdministrativeMaps, getMapFolderContents, getSubfolderContents } from "./google-drive";
+import { 
+  getDocumentFolders, 
+  getGalleryFolders, 
+  getGalleryImages, 
+  deleteGalleryImages, 
+  renameGalleryImage, 
+  getAdministrativeMaps, 
+  getMapFolderContents, 
+  getSubfolderContents,
+  uploadDocumentFile,
+  createDocumentFolder,
+  renameDocumentFile,
+  deleteDocumentFile,
+  uploadGalleryImages,
+  getImageContent
+} from "./google-drive";
 import { getHazardZones, getMapAssets } from "./maps-data";
 import { insertInventorySchema, insertEventSchema, insertTaskSchema, insertContactSchema, insertMapFrameSchema } from "@shared/schema";
+
+const upload = multer({ 
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 50 * 1024 * 1024 } // 50MB limit
+});
 
 export async function registerRoutes(
   httpServer: Server,
@@ -297,6 +318,69 @@ export async function registerRoutes(
     }
   });
 
+  // Document file upload
+  app.post("/api/documents/upload", upload.single("file"), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No file provided" });
+      }
+      const folderId = req.body.folderId as string | undefined;
+      const file = await uploadDocumentFile(
+        req.file.originalname,
+        req.file.mimetype,
+        req.file.buffer,
+        folderId
+      );
+      res.status(201).json(file);
+    } catch (error) {
+      console.error("Error uploading document:", error);
+      res.status(500).json({ error: "Failed to upload document" });
+    }
+  });
+
+  // Create document folder
+  app.post("/api/documents/folders", async (req, res) => {
+    try {
+      const { name, parentFolderId } = req.body;
+      if (!name) {
+        return res.status(400).json({ error: "Folder name is required" });
+      }
+      const folder = await createDocumentFolder(name, parentFolderId);
+      res.status(201).json(folder);
+    } catch (error) {
+      console.error("Error creating folder:", error);
+      res.status(500).json({ error: "Failed to create folder" });
+    }
+  });
+
+  // Rename document file/folder
+  app.patch("/api/documents/:fileId", async (req, res) => {
+    try {
+      const { fileId } = req.params;
+      const { name } = req.body;
+      if (!name) {
+        return res.status(400).json({ error: "Name is required" });
+      }
+      await renameDocumentFile(fileId, name);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error renaming document:", error);
+      res.status(500).json({ error: "Failed to rename document" });
+    }
+  });
+
+  // Delete document file/folder
+  app.delete("/api/documents/:fileId", async (req, res) => {
+    try {
+      const { fileId } = req.params;
+      await deleteDocumentFile(fileId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting document:", error);
+      res.status(500).json({ error: "Failed to delete document" });
+    }
+  });
+
   // Gallery API endpoints
   app.get("/api/gallery/folders", async (req, res) => {
     try {
@@ -348,6 +432,52 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error renaming gallery image:", error);
       res.status(500).json({ error: "Failed to rename gallery image" });
+    }
+  });
+
+  // Gallery bulk image upload (supports drag-and-drop)
+  app.post("/api/gallery/upload", upload.array("images", 20), async (req, res) => {
+    try {
+      const files = req.files as Express.Multer.File[];
+      const folderId = req.body.folderId as string;
+      
+      if (!files || files.length === 0) {
+        return res.status(400).json({ error: "No files provided" });
+      }
+      if (!folderId) {
+        return res.status(400).json({ error: "Folder ID is required" });
+      }
+
+      const fileData = files.map(f => ({
+        fileName: f.originalname,
+        mimeType: f.mimetype,
+        buffer: f.buffer,
+      }));
+
+      const images = await uploadGalleryImages(fileData, folderId);
+      res.status(201).json({ success: true, uploaded: images.length, images });
+    } catch (error) {
+      console.error("Error uploading gallery images:", error);
+      res.status(500).json({ error: "Failed to upload images" });
+    }
+  });
+
+  // Get image content for preview/download
+  app.get("/api/gallery/images/:imageId/content", async (req, res) => {
+    try {
+      const { imageId } = req.params;
+      const download = req.query.download === "true";
+      
+      const { buffer, mimeType, name } = await getImageContent(imageId);
+      
+      res.set("Content-Type", mimeType);
+      if (download) {
+        res.set("Content-Disposition", `attachment; filename="${name}"`);
+      }
+      res.send(buffer);
+    } catch (error) {
+      console.error("Error getting image content:", error);
+      res.status(500).json({ error: "Failed to get image content" });
     }
   });
 

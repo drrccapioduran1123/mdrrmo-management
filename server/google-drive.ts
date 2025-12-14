@@ -1,10 +1,13 @@
 // Google Drive Integration for MDRRMO Pio Duran
-// Using the google-drive connector blueprint
+// Using the google-drive connector blueprint with shared token manager
 
 import { google } from "googleapis";
 import type { DriveFolder, DriveFile, GalleryImage } from "@shared/schema";
+import { getGoogleDriveToken } from "./google-token-manager";
+import { Readable } from "stream";
 
 const DOCUMENTS_ROOT_FOLDER_ID = "15_xiFeXu_vdIe2CYrjGaRCAho2OqhGvo";
+const GALLERY_ROOT_FOLDER_ID = "1O1WlCjMvZ5lVcrOIGNMlBY4ZuQ-zEarg";
 
 const MAP_FOLDER_IDS = {
   administrative: "1Wh2wSQuyzHiz25Vbr4ICETj18RRUEpvi",
@@ -14,71 +17,8 @@ const MAP_FOLDER_IDS = {
   other: "1MI1aO_-gQwsRbSJsfHY2FI4AOz9Jney1",
 };
 
-let connectionSettings: any = null;
-let lastFetchTime = 0;
-
-async function getAccessToken(): Promise<string> {
-  const now = Date.now();
-
-  if (
-    connectionSettings &&
-    connectionSettings.settings?.expires_at &&
-    new Date(connectionSettings.settings.expires_at).getTime() > now + 60000
-  ) {
-    return connectionSettings.settings.access_token;
-  }
-
-  if (now - lastFetchTime < 5000) {
-    throw new Error("Token fetch rate limited");
-  }
-
-  const hostname = process.env.REPLIT_CONNECTORS_HOSTNAME;
-  const xReplitToken = process.env.REPL_IDENTITY
-    ? "repl " + process.env.REPL_IDENTITY
-    : process.env.WEB_REPL_RENEWAL
-      ? "depl " + process.env.WEB_REPL_RENEWAL
-      : null;
-
-  if (!xReplitToken || !hostname) {
-    throw new Error("Replit connector environment not available");
-  }
-
-  lastFetchTime = now;
-
-  const response = await fetch(
-    "https://" +
-      hostname +
-      "/api/v2/connection?include_secrets=true&connector_names=google-drive",
-    {
-      headers: {
-        Accept: "application/json",
-        X_REPLIT_TOKEN: xReplitToken,
-      },
-    },
-  );
-
-  if (!response.ok) {
-    throw new Error(`Connector fetch failed: ${response.status}`);
-  }
-
-  const data = await response.json();
-  connectionSettings = data.items?.[0];
-
-  const accessToken =
-    connectionSettings?.settings?.access_token ||
-    connectionSettings?.settings?.oauth?.credentials?.access_token;
-
-  if (!connectionSettings || !accessToken) {
-    throw new Error(
-      "Google Drive connector not configured. Please connect your Google Drive in the integrations panel.",
-    );
-  }
-
-  return accessToken;
-}
-
 async function getGoogleDriveClient() {
-  const accessToken = await getAccessToken();
+  const accessToken = await getGoogleDriveToken();
 
   const oauth2Client = new google.auth.OAuth2();
   oauth2Client.setCredentials({
@@ -426,6 +366,184 @@ export async function renameGalleryImage(
     });
   } catch (error) {
     console.error("Error renaming gallery image:", error);
+    throw error;
+  }
+}
+
+// File upload functions for Documents
+export async function uploadDocumentFile(
+  fileName: string,
+  mimeType: string,
+  fileBuffer: Buffer,
+  folderId?: string
+): Promise<DriveFile> {
+  try {
+    const drive = await getGoogleDriveClient();
+    const targetFolderId = folderId || DOCUMENTS_ROOT_FOLDER_ID;
+
+    const response = await drive.files.create({
+      requestBody: {
+        name: fileName,
+        parents: [targetFolderId],
+      },
+      media: {
+        mimeType,
+        body: Readable.from(fileBuffer),
+      },
+      fields: "id, name, mimeType, webViewLink, webContentLink, thumbnailLink, createdTime, modifiedTime, size",
+    });
+
+    return {
+      id: response.data.id!,
+      name: response.data.name!,
+      mimeType: response.data.mimeType!,
+      webViewLink: response.data.webViewLink || undefined,
+      webContentLink: response.data.webContentLink || undefined,
+      thumbnailLink: response.data.thumbnailLink || undefined,
+      createdTime: response.data.createdTime || undefined,
+      modifiedTime: response.data.modifiedTime || undefined,
+      size: response.data.size || undefined,
+    };
+  } catch (error) {
+    console.error("Error uploading document file:", error);
+    throw error;
+  }
+}
+
+// Create folder in documents
+export async function createDocumentFolder(
+  folderName: string,
+  parentFolderId?: string
+): Promise<{ id: string; name: string }> {
+  try {
+    const drive = await getGoogleDriveClient();
+    const targetParentId = parentFolderId || DOCUMENTS_ROOT_FOLDER_ID;
+
+    const response = await drive.files.create({
+      requestBody: {
+        name: folderName,
+        mimeType: "application/vnd.google-apps.folder",
+        parents: [targetParentId],
+      },
+      fields: "id, name",
+    });
+
+    return {
+      id: response.data.id!,
+      name: response.data.name!,
+    };
+  } catch (error) {
+    console.error("Error creating document folder:", error);
+    throw error;
+  }
+}
+
+// Rename file or folder
+export async function renameDocumentFile(
+  fileId: string,
+  newName: string
+): Promise<void> {
+  try {
+    const drive = await getGoogleDriveClient();
+
+    await drive.files.update({
+      fileId,
+      requestBody: {
+        name: newName,
+      },
+    });
+  } catch (error) {
+    console.error("Error renaming document file:", error);
+    throw error;
+  }
+}
+
+// Delete file or folder
+export async function deleteDocumentFile(fileId: string): Promise<void> {
+  try {
+    const drive = await getGoogleDriveClient();
+
+    await drive.files.update({
+      fileId,
+      requestBody: {
+        trashed: true,
+      },
+    });
+  } catch (error) {
+    console.error("Error deleting document file:", error);
+    throw error;
+  }
+}
+
+// Upload gallery images (supports bulk upload)
+export async function uploadGalleryImages(
+  files: Array<{ fileName: string; mimeType: string; buffer: Buffer }>,
+  folderId: string
+): Promise<GalleryImage[]> {
+  if (!folderId) {
+    throw new Error("Folder ID is required for gallery upload");
+  }
+
+  try {
+    const drive = await getGoogleDriveClient();
+
+    const uploadedImages = await Promise.all(
+      files.map(async (file) => {
+        const response = await drive.files.create({
+          requestBody: {
+            name: file.fileName,
+            parents: [folderId],
+          },
+          media: {
+            mimeType: file.mimeType,
+            body: Readable.from(file.buffer),
+          },
+          fields: "id, name, thumbnailLink, webViewLink, webContentLink, createdTime",
+        });
+
+        return {
+          id: response.data.id!,
+          name: response.data.name!,
+          thumbnailLink: response.data.thumbnailLink || undefined,
+          webViewLink: response.data.webViewLink || undefined,
+          webContentLink: response.data.webContentLink || undefined,
+          createdTime: response.data.createdTime || undefined,
+          folder: folderId,
+        };
+      })
+    );
+
+    return uploadedImages;
+  } catch (error) {
+    console.error("Error uploading gallery images:", error);
+    throw error;
+  }
+}
+
+// Get image for preview/download
+export async function getImageContent(fileId: string): Promise<{ buffer: Buffer; mimeType: string; name: string }> {
+  try {
+    const drive = await getGoogleDriveClient();
+
+    // Get file metadata first
+    const metadata = await drive.files.get({
+      fileId,
+      fields: "name, mimeType",
+    });
+
+    // Download file content
+    const response = await drive.files.get(
+      { fileId, alt: "media" },
+      { responseType: "arraybuffer" }
+    );
+
+    return {
+      buffer: Buffer.from(response.data as ArrayBuffer),
+      mimeType: metadata.data.mimeType || "application/octet-stream",
+      name: metadata.data.name || "download",
+    };
+  } catch (error) {
+    console.error("Error getting image content:", error);
     throw error;
   }
 }

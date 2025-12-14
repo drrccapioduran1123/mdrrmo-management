@@ -1,70 +1,14 @@
 // Google Sheets Integration for MDRRMO Pio Duran
-// Using the google-sheet connector blueprint
+// Using the google-sheet connector blueprint with shared token manager
 
 import { google } from 'googleapis';
 import type { InventoryItem, CalendarEvent, CalendarTask, Contact, MapFrame, InsertInventoryItem, InsertCalendarEvent, InsertCalendarTask, InsertContact, InsertMapFrame } from '@shared/schema';
+import { getGoogleSheetsToken } from './google-token-manager';
 
 const SPREADSHEET_ID = process.env.GOOGLE_SHEETS_SPREADSHEET_ID || '11uutE9iZ2BjddbFkeX9cQVFOouphdvyP000vh1lGOo4';
 
-let connectionSettings: any = null;
-let lastFetchTime = 0;
-const TOKEN_REFRESH_INTERVAL = 30 * 60 * 1000;
-
-async function getAccessToken(): Promise<string> {
-  const now = Date.now();
-  
-  if (connectionSettings && 
-      connectionSettings.settings?.expires_at && 
-      new Date(connectionSettings.settings.expires_at).getTime() > now + 60000) {
-    return connectionSettings.settings.access_token;
-  }
-
-  if (now - lastFetchTime < 5000) {
-    throw new Error('Token fetch rate limited');
-  }
-  
-  const hostname = process.env.REPLIT_CONNECTORS_HOSTNAME;
-  const xReplitToken = process.env.REPL_IDENTITY 
-    ? 'repl ' + process.env.REPL_IDENTITY 
-    : process.env.WEB_REPL_RENEWAL 
-    ? 'depl ' + process.env.WEB_REPL_RENEWAL 
-    : null;
-
-  if (!xReplitToken || !hostname) {
-    throw new Error('Replit connector environment not available');
-  }
-
-  lastFetchTime = now;
-  
-  const response = await fetch(
-    'https://' + hostname + '/api/v2/connection?include_secrets=true&connector_names=google-sheet',
-    {
-      headers: {
-        'Accept': 'application/json',
-        'X_REPLIT_TOKEN': xReplitToken
-      }
-    }
-  );
-  
-  if (!response.ok) {
-    throw new Error(`Connector fetch failed: ${response.status}`);
-  }
-  
-  const data = await response.json();
-  connectionSettings = data.items?.[0];
-
-  const accessToken = connectionSettings?.settings?.access_token || 
-                      connectionSettings?.settings?.oauth?.credentials?.access_token;
-
-  if (!connectionSettings || !accessToken) {
-    throw new Error('Google Sheet connector not configured. Please connect your Google Sheet in the integrations panel.');
-  }
-  
-  return accessToken;
-}
-
 async function getGoogleSheetsClient() {
-  const accessToken = await getAccessToken();
+  const accessToken = await getGoogleSheetsToken();
 
   const oauth2Client = new google.auth.OAuth2();
   oauth2Client.setCredentials({
