@@ -61,7 +61,11 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import type { InventoryItem, InventoryStats, InsertInventoryItem } from "@shared/schema";
+import type {
+  InventoryItem,
+  InventoryStats,
+  InsertInventoryItem,
+} from "@shared/schema";
 import { insertInventorySchema } from "@shared/schema";
 
 export default function Inventory() {
@@ -96,12 +100,22 @@ export default function Inventory() {
       toast({ title: "Success", description: "Item added successfully" });
     },
     onError: () => {
-      toast({ title: "Error", description: "Failed to add item", variant: "destructive" });
+      toast({
+        title: "Error",
+        description: "Failed to add item",
+        variant: "destructive",
+      });
     },
   });
 
   const updateMutation = useMutation({
-    mutationFn: async ({ index, data }: { index: number; data: InsertInventoryItem }) => {
+    mutationFn: async ({
+      index,
+      data,
+    }: {
+      index: number;
+      data: InsertInventoryItem;
+    }) => {
       return apiRequest(`/api/inventory/${index}`, {
         method: "PUT",
         body: JSON.stringify(data),
@@ -115,7 +129,11 @@ export default function Inventory() {
       toast({ title: "Success", description: "Item updated successfully" });
     },
     onError: () => {
-      toast({ title: "Error", description: "Failed to update item", variant: "destructive" });
+      toast({
+        title: "Error",
+        description: "Failed to update item",
+        variant: "destructive",
+      });
     },
   });
 
@@ -130,7 +148,11 @@ export default function Inventory() {
       toast({ title: "Success", description: "Item deleted successfully" });
     },
     onError: () => {
-      toast({ title: "Error", description: "Failed to delete item", variant: "destructive" });
+      toast({
+        title: "Error",
+        description: "Failed to delete item",
+        variant: "destructive",
+      });
     },
   });
 
@@ -192,7 +214,15 @@ export default function Inventory() {
   };
 
   const exportToCSV = () => {
-    const headers = ["Item Name", "Description", "Category", "Location", "Stock", "Unit", "Status"];
+    const headers = [
+      "Item Name",
+      "Description",
+      "Category",
+      "Location",
+      "Stock",
+      "Unit",
+      "Status",
+    ];
     const rows = filteredItems.map((item) => [
       item.itemName,
       item.itemDescription,
@@ -202,7 +232,10 @@ export default function Inventory() {
       item.itemUnit,
       item.itemStatus,
     ]);
-    const csvContent = [headers.join(","), ...rows.map((row) => row.join(","))].join("\n");
+    const csvContent = [
+      headers.join(","),
+      ...rows.map((row) => row.join(",")),
+    ].join("\n");
     const blob = new Blob([csvContent], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -220,7 +253,7 @@ export default function Inventory() {
   return (
     <div
       className="min-h-screen flex flex-col"
-      style={{ background: "#1A1E32" }}
+      style={{ background: "#D8EFF7" }}
     >
       <BackgroundPattern />
       <Header title="SUPPLY INVENTORY" showBack />
@@ -230,9 +263,9 @@ export default function Inventory() {
           <div
             className="rounded-3xl p-6 md:p-8"
             style={{
-              background: "rgba(14, 33, 72, 0.85)",
+              background: "linear-gradient(to bottom, #25007a, #930173)",
               backdropFilter: "blur(25px)",
-              border: "1px solid rgba(121, 101, 193, 0.4)",
+              border: "3px ridge #fff700",
               boxShadow: "0 12px 40px rgba(0, 0, 0, 0.3)",
             }}
           >
@@ -244,7 +277,7 @@ export default function Inventory() {
                 <div
                   className="w-12 h-12 rounded-xl flex items-center justify-center"
                   style={{
-                    background: "linear-gradient(135deg, #00A38D, #00A38DCC)",
+                    background: "linear-gradient(to right, #667eea, #764ba2)",
                   }}
                 >
                   <Package className="w-6 h-6 text-white" />
@@ -257,7 +290,7 @@ export default function Inventory() {
                   }}
                   data-testid="text-inventory-title"
                 >
-                  Supply Inventory
+                  Office Supply Inventory
                 </h2>
               </div>
               <SearchBar
@@ -267,7 +300,7 @@ export default function Inventory() {
               />
             </div>
 
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
               <StatCard
                 icon={Package}
                 value={stats.totalItems}
@@ -305,9 +338,9 @@ export default function Inventory() {
                   onChange={(e) => setCategoryFilter(e.target.value)}
                   className="px-4 py-2 rounded-lg text-sm font-medium outline-none"
                   style={{
-                    background: "rgba(255, 255, 255, 0.1)",
+                    background: "#031772",
                     color: "#E3D095",
-                    border: "1px solid rgba(121, 101, 193, 0.4)",
+                    border: "1px solid #e0e2ff",
                   }}
                   data-testid="select-category"
                 >
@@ -513,7 +546,13 @@ export default function Inventory() {
       <Footer />
 
       <Dialog open={addModalOpen} onOpenChange={setAddModalOpen}>
-        <DialogContent className="max-w-md" style={{ background: "#1A1E32", border: "1px solid rgba(121, 101, 193, 0.4)" }}>
+        <DialogContent
+          className="max-w-md"
+          style={{
+            background: "#1A1E32",
+            border: "1px solid rgba(121, 101, 193, 0.4)",
+          }}
+        >
           <DialogHeader>
             <DialogTitle style={{ color: "#E3D095" }}>Add New Item</DialogTitle>
             <DialogDescription style={{ color: "rgba(227, 208, 149, 0.6)" }}>
@@ -521,15 +560,26 @@ export default function Inventory() {
             </DialogDescription>
           </DialogHeader>
           <Form {...addForm}>
-            <form onSubmit={addForm.handleSubmit((data) => addMutation.mutate(data))} className="space-y-4">
+            <form
+              onSubmit={addForm.handleSubmit((data) =>
+                addMutation.mutate(data),
+              )}
+              className="space-y-4"
+            >
               <FormField
                 control={addForm.control}
                 name="itemName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel style={{ color: "#E3D095" }}>Item Name</FormLabel>
+                    <FormLabel style={{ color: "#E3D095" }}>
+                      Item Name
+                    </FormLabel>
                     <FormControl>
-                      <Input {...field} data-testid="input-item-name" className="bg-white/10 border-[rgba(121,101,193,0.4)] text-white" />
+                      <Input
+                        {...field}
+                        data-testid="input-item-name"
+                        className="bg-white/10 border-[rgba(121,101,193,0.4)] text-white"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -540,9 +590,15 @@ export default function Inventory() {
                 name="itemDescription"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel style={{ color: "#E3D095" }}>Description</FormLabel>
+                    <FormLabel style={{ color: "#E3D095" }}>
+                      Description
+                    </FormLabel>
                     <FormControl>
-                      <Textarea {...field} data-testid="input-item-description" className="bg-white/10 border-[rgba(121,101,193,0.4)] text-white" />
+                      <Textarea
+                        {...field}
+                        data-testid="input-item-description"
+                        className="bg-white/10 border-[rgba(121,101,193,0.4)] text-white"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -554,9 +610,15 @@ export default function Inventory() {
                   name="itemCategory"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel style={{ color: "#E3D095" }}>Category</FormLabel>
+                      <FormLabel style={{ color: "#E3D095" }}>
+                        Category
+                      </FormLabel>
                       <FormControl>
-                        <Input {...field} data-testid="input-item-category" className="bg-white/10 border-[rgba(121,101,193,0.4)] text-white" />
+                        <Input
+                          {...field}
+                          data-testid="input-item-category"
+                          className="bg-white/10 border-[rgba(121,101,193,0.4)] text-white"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -567,9 +629,15 @@ export default function Inventory() {
                   name="itemLocation"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel style={{ color: "#E3D095" }}>Location</FormLabel>
+                      <FormLabel style={{ color: "#E3D095" }}>
+                        Location
+                      </FormLabel>
                       <FormControl>
-                        <Input {...field} data-testid="input-item-location" className="bg-white/10 border-[rgba(121,101,193,0.4)] text-white" />
+                        <Input
+                          {...field}
+                          data-testid="input-item-location"
+                          className="bg-white/10 border-[rgba(121,101,193,0.4)] text-white"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -587,7 +655,9 @@ export default function Inventory() {
                         <Input
                           type="number"
                           {...field}
-                          onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                          onChange={(e) =>
+                            field.onChange(parseInt(e.target.value) || 0)
+                          }
                           data-testid="input-item-stock"
                           className="bg-white/10 border-[rgba(121,101,193,0.4)] text-white"
                         />
@@ -603,7 +673,12 @@ export default function Inventory() {
                     <FormItem>
                       <FormLabel style={{ color: "#E3D095" }}>Unit</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="pcs, kg, etc." data-testid="input-item-unit" className="bg-white/10 border-[rgba(121,101,193,0.4)] text-white" />
+                        <Input
+                          {...field}
+                          placeholder="pcs, kg, etc."
+                          data-testid="input-item-unit"
+                          className="bg-white/10 border-[rgba(121,101,193,0.4)] text-white"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -616,16 +691,24 @@ export default function Inventory() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel style={{ color: "#E3D095" }}>Status</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
                       <FormControl>
-                        <SelectTrigger data-testid="select-item-status" className="bg-white/10 border-[rgba(121,101,193,0.4)] text-white">
+                        <SelectTrigger
+                          data-testid="select-item-status"
+                          className="bg-white/10 border-[rgba(121,101,193,0.4)] text-white"
+                        >
                           <SelectValue placeholder="Select status" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="In Stock">In Stock</SelectItem>
                         <SelectItem value="Low Stock">Low Stock</SelectItem>
-                        <SelectItem value="Out of Stock">Out of Stock</SelectItem>
+                        <SelectItem value="Out of Stock">
+                          Out of Stock
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -633,10 +716,19 @@ export default function Inventory() {
                 )}
               />
               <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setAddModalOpen(false)}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setAddModalOpen(false)}
+                >
                   Cancel
                 </Button>
-                <Button type="submit" disabled={addMutation.isPending} style={{ background: "#00A38D" }} data-testid="button-submit-add">
+                <Button
+                  type="submit"
+                  disabled={addMutation.isPending}
+                  style={{ background: "#00A38D" }}
+                  data-testid="button-submit-add"
+                >
                   {addMutation.isPending ? "Adding..." : "Add Item"}
                 </Button>
               </DialogFooter>
@@ -646,7 +738,13 @@ export default function Inventory() {
       </Dialog>
 
       <Dialog open={editModalOpen} onOpenChange={setEditModalOpen}>
-        <DialogContent className="max-w-md" style={{ background: "#1A1E32", border: "1px solid rgba(121, 101, 193, 0.4)" }}>
+        <DialogContent
+          className="max-w-md"
+          style={{
+            background: "#1A1E32",
+            border: "1px solid rgba(121, 101, 193, 0.4)",
+          }}
+        >
           <DialogHeader>
             <DialogTitle style={{ color: "#E3D095" }}>Edit Item</DialogTitle>
             <DialogDescription style={{ color: "rgba(227, 208, 149, 0.6)" }}>
@@ -667,9 +765,15 @@ export default function Inventory() {
                 name="itemName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel style={{ color: "#E3D095" }}>Item Name</FormLabel>
+                    <FormLabel style={{ color: "#E3D095" }}>
+                      Item Name
+                    </FormLabel>
                     <FormControl>
-                      <Input {...field} data-testid="input-edit-item-name" className="bg-white/10 border-[rgba(121,101,193,0.4)] text-white" />
+                      <Input
+                        {...field}
+                        data-testid="input-edit-item-name"
+                        className="bg-white/10 border-[rgba(121,101,193,0.4)] text-white"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -680,9 +784,15 @@ export default function Inventory() {
                 name="itemDescription"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel style={{ color: "#E3D095" }}>Description</FormLabel>
+                    <FormLabel style={{ color: "#E3D095" }}>
+                      Description
+                    </FormLabel>
                     <FormControl>
-                      <Textarea {...field} data-testid="input-edit-item-description" className="bg-white/10 border-[rgba(121,101,193,0.4)] text-white" />
+                      <Textarea
+                        {...field}
+                        data-testid="input-edit-item-description"
+                        className="bg-white/10 border-[rgba(121,101,193,0.4)] text-white"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -694,9 +804,15 @@ export default function Inventory() {
                   name="itemCategory"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel style={{ color: "#E3D095" }}>Category</FormLabel>
+                      <FormLabel style={{ color: "#E3D095" }}>
+                        Category
+                      </FormLabel>
                       <FormControl>
-                        <Input {...field} data-testid="input-edit-item-category" className="bg-white/10 border-[rgba(121,101,193,0.4)] text-white" />
+                        <Input
+                          {...field}
+                          data-testid="input-edit-item-category"
+                          className="bg-white/10 border-[rgba(121,101,193,0.4)] text-white"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -707,9 +823,15 @@ export default function Inventory() {
                   name="itemLocation"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel style={{ color: "#E3D095" }}>Location</FormLabel>
+                      <FormLabel style={{ color: "#E3D095" }}>
+                        Location
+                      </FormLabel>
                       <FormControl>
-                        <Input {...field} data-testid="input-edit-item-location" className="bg-white/10 border-[rgba(121,101,193,0.4)] text-white" />
+                        <Input
+                          {...field}
+                          data-testid="input-edit-item-location"
+                          className="bg-white/10 border-[rgba(121,101,193,0.4)] text-white"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -727,7 +849,9 @@ export default function Inventory() {
                         <Input
                           type="number"
                           {...field}
-                          onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                          onChange={(e) =>
+                            field.onChange(parseInt(e.target.value) || 0)
+                          }
                           data-testid="input-edit-item-stock"
                           className="bg-white/10 border-[rgba(121,101,193,0.4)] text-white"
                         />
@@ -743,7 +867,11 @@ export default function Inventory() {
                     <FormItem>
                       <FormLabel style={{ color: "#E3D095" }}>Unit</FormLabel>
                       <FormControl>
-                        <Input {...field} data-testid="input-edit-item-unit" className="bg-white/10 border-[rgba(121,101,193,0.4)] text-white" />
+                        <Input
+                          {...field}
+                          data-testid="input-edit-item-unit"
+                          className="bg-white/10 border-[rgba(121,101,193,0.4)] text-white"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -758,14 +886,19 @@ export default function Inventory() {
                     <FormLabel style={{ color: "#E3D095" }}>Status</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
-                        <SelectTrigger data-testid="select-edit-item-status" className="bg-white/10 border-[rgba(121,101,193,0.4)] text-white">
+                        <SelectTrigger
+                          data-testid="select-edit-item-status"
+                          className="bg-white/10 border-[rgba(121,101,193,0.4)] text-white"
+                        >
                           <SelectValue placeholder="Select status" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="In Stock">In Stock</SelectItem>
                         <SelectItem value="Low Stock">Low Stock</SelectItem>
-                        <SelectItem value="Out of Stock">Out of Stock</SelectItem>
+                        <SelectItem value="Out of Stock">
+                          Out of Stock
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -773,10 +906,19 @@ export default function Inventory() {
                 )}
               />
               <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setEditModalOpen(false)}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setEditModalOpen(false)}
+                >
                   Cancel
                 </Button>
-                <Button type="submit" disabled={updateMutation.isPending} style={{ background: "#00A38D" }} data-testid="button-submit-edit">
+                <Button
+                  type="submit"
+                  disabled={updateMutation.isPending}
+                  style={{ background: "#00A38D" }}
+                  data-testid="button-submit-edit"
+                >
                   {updateMutation.isPending ? "Updating..." : "Update Item"}
                 </Button>
               </DialogFooter>
@@ -786,11 +928,21 @@ export default function Inventory() {
       </Dialog>
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent style={{ background: "#1A1E32", border: "1px solid rgba(121, 101, 193, 0.4)" }}>
+        <AlertDialogContent
+          style={{
+            background: "#1A1E32",
+            border: "1px solid rgba(121, 101, 193, 0.4)",
+          }}
+        >
           <AlertDialogHeader>
-            <AlertDialogTitle style={{ color: "#E3D095" }}>Delete Item</AlertDialogTitle>
-            <AlertDialogDescription style={{ color: "rgba(227, 208, 149, 0.6)" }}>
-              Are you sure you want to delete "{selectedItem?.itemName}"? This action cannot be undone.
+            <AlertDialogTitle style={{ color: "#E3D095" }}>
+              Delete Item
+            </AlertDialogTitle>
+            <AlertDialogDescription
+              style={{ color: "rgba(227, 208, 149, 0.6)" }}
+            >
+              Are you sure you want to delete "{selectedItem?.itemName}"? This
+              action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

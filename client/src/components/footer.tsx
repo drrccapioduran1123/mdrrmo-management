@@ -3,8 +3,8 @@ export function Footer() {
     <footer 
       className="w-full py-3 text-center sticky bottom-0 z-40"
       style={{
-        background: "linear-gradient(135deg, #7965C1, #483AA0)",
-        borderTop: "1px solid rgba(121, 101, 193, 0.4)",
+        background: "linear-gradient(135deg, #020964, #003375)",
+        borderTop: "2px solid rgba(162, 255, 236, 0.17)",
         backdropFilter: "blur(10px)"
       }}
       data-testid="footer"

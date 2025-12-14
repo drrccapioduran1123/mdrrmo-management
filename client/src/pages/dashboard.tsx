@@ -9,9 +9,9 @@ const modules: DashboardModule[] = [
     id: "supply-inventory",
     title: "Supply Inventory",
     description:
-      "Track emergency equipment, relief supplies, and monitor stock levels in real-time for efficient disaster response.",
+      "Track equipment, ofice supplies, and monitor stock levels in real-time for efficient disaster response.",
     icon: "package",
-    color: "#FF6B9D",
+    color: "#f570ff",
     route: "/inventory",
   },
   {

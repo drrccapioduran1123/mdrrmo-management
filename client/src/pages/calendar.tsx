@@ -316,7 +316,7 @@ export default function CalendarPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)" }}>
+    <div className="min-h-screen flex flex-col" style={{ background: "linear-gradient(to bottom, #00b9d1, #70dbff)" }}>
       <BackgroundPattern />
       <Header title="CALENDAR OF ACTIVITIES" showBack />
 
@@ -324,22 +324,22 @@ export default function CalendarPage() {
         <div className="max-w-7xl mx-auto">
           <div
             className="rounded-3xl p-6 md:p-8 backdrop-blur-xl"
-            style={{ background: "rgba(255, 255, 255, 0.15)", border: "1px solid rgba(255, 255, 255, 0.2)", boxShadow: "0 20px 50px rgba(0, 0, 0, 0.15)" }}
+            style={{ background: "linear-gradient(135deg, #026292, #00a8e0)", border: "2px solid rgba(255, 255, 255, 0.2)", boxShadow: "0 20px 50px rgba(0, 0, 0, 0.15)" }}
           >
             <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 mb-8 pb-6 border-b-2" style={{ borderColor: "rgba(255, 255, 255, 0.2)" }}>
               <div className="flex items-center gap-4">
                 <div className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg" style={{ background: "linear-gradient(135deg, #45B7D1, #96CEB4)", boxShadow: "0 10px 25px rgba(69, 183, 209, 0.3)" }}>
                   <CalendarIcon className="w-7 h-7 text-white" />
                 </div>
-                <h2 className="text-3xl md:text-4xl font-black tracking-tight" style={{ color: "#FFFFFF", textShadow: "0 4px 12px rgba(0, 0, 0, 0.2)" }} data-testid="text-calendar-title">
-                  Calendar of Activities
+                <h2 className="text-3xl md:text-4xl font-bold tracking-tight" style={{ color: "#fbffdb", textShadow: "0 4px 12px rgba(0, 0, 0, 0.2)" }} data-testid="text-calendar-title">
+                  
                 </h2>
               </div>
               <div className="flex items-center gap-3 flex-wrap">
                 <SearchBar value={searchQuery} onChange={setSearchQuery} placeholder="Search events or tasks..." />
                 <Button
                   className="rounded-xl px-4 gap-2 font-bold shadow-lg transition-all duration-300 hover:scale-105"
-                  style={{ background: "linear-gradient(135deg, #45B7D1, #96CEB4)", color: "white" }}
+                  style={{ background: "linear-gradient(to bottom, #003d5c, #00455c)", color: "fbffdb" }}
                   onClick={() => { eventForm.reset(); setAddEventOpen(true); }}
                   data-testid="button-add-event"
                 >
@@ -348,18 +348,18 @@ export default function CalendarPage() {
                 </Button>
                 <Button
                   className="rounded-xl px-4 gap-2 font-bold shadow-lg transition-all duration-300 hover:scale-105"
-                  style={{ background: "linear-gradient(135deg, #96CEB4, #45B7D1)", color: "white" }}
+                  style={{ background: "linear-gradient(to bottom, #003d5c, #00455c)", color: "#fbffdb" }}
                   onClick={() => { taskForm.reset(); setAddTaskOpen(true); }}
                   data-testid="button-add-task"
                 >
                   <Plus className="w-4 h-4" />
                   Add Task
                 </Button>
-                <Button variant="outline" className="rounded-xl px-4 gap-2" style={{ color: "white", borderColor: "rgba(255,255,255,0.3)" }} onClick={exportToCSV} data-testid="button-export">
+                <Button variant="outline" className="rounded-xl px-4 gap-2" style={{  color: "#fbffdb", borderColor: "rgba(255,255,255,0.3)" }} onClick={exportToCSV} data-testid="button-export">
                   <Download className="w-4 h-4" />
                   Export
                 </Button>
-                <Button variant="outline" className="rounded-xl px-4 gap-2" style={{ color: "white", borderColor: "rgba(255,255,255,0.3)" }} onClick={() => window.print()} data-testid="button-print">
+                <Button variant="outline" className="rounded-xl px-4 gap-2" style={{ color: "#fbffdb", borderColor: "rgba(255,255,255,0.3)" }} onClick={() => window.print()} data-testid="button-print">
                   <Printer className="w-4 h-4" />
                   Print
                 </Button>
@@ -367,12 +367,12 @@ export default function CalendarPage() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="rounded-2xl p-5 backdrop-blur-lg" style={{ background: "rgba(255, 255, 255, 0.1)", border: "1px solid rgba(255, 255, 255, 0.15)" }}>
+              <div className="rounded-2xl p-5 backdrop-blur-lg" style={{ background: "linear-gradient(to bottom, #003d5c, #00455c)", border: "3px solid #8a92ff" }}>
                 <div className="flex items-center justify-between mb-4">
                   <button onClick={() => navigateMonth(-1)} className="p-2 rounded-xl transition-all duration-200 hover:bg-white/10 hover:scale-110" style={{ color: "#FFFFFF" }} data-testid="button-prev-month">
                     <ChevronLeft className="w-5 h-5" />
                   </button>
-                  <h3 className="text-lg font-black" style={{ color: "#FFFFFF" }} data-testid="text-current-month">
+                  <h3 className="text-lg font-black" style={{ color: "#95dbfe" }} data-testid="text-current-month">
                     {MONTHS[currentDate.getMonth()]} {currentDate.getFullYear()}
                   </h3>
                   <button onClick={() => navigateMonth(1)} className="p-2 rounded-xl transition-all duration-200 hover:bg-white/10 hover:scale-110" style={{ color: "#FFFFFF" }} data-testid="button-next-month">
@@ -382,7 +382,7 @@ export default function CalendarPage() {
 
                 <div className="grid grid-cols-7 gap-1 mb-2">
                   {DAYS.map((day) => (
-                    <div key={day} className="text-center text-xs font-black py-2" style={{ color: "#FFFFFF" }}>{day}</div>
+                    <div key={day} className="text-center text-xs font-black py-2" style={{ color: "#95dbfe" }}>{day}</div>
                   ))}
                 </div>
 
@@ -422,7 +422,7 @@ export default function CalendarPage() {
               </div>
 
               <div className="lg:col-span-2 space-y-6">
-                <div className="rounded-2xl p-5 backdrop-blur-lg" style={{ background: "rgba(255, 255, 255, 0.1)", border: "1px solid rgba(255, 255, 255, 0.15)" }}>
+                <div className="rounded-2xl p-5 backdrop-blur-lg" style={{ background: "linear-gradient(to right, #036291, #187991)", border: "3px solid rgba(255, 255, 255, 0.15)" }}>
                   <h3 className="text-xl font-black mb-4 flex items-center gap-2" style={{ color: "#FFFFFF" }}>
                     <CalendarIcon className="w-6 h-6" style={{ color: "#45B7D1" }} />
                     Event Schedule
@@ -433,7 +433,7 @@ export default function CalendarPage() {
                   ) : filteredEvents.length === 0 ? (
                     <EmptyState icon={CalendarIcon} title="No events scheduled" description="Add your first event to get started." actionLabel="Add Event" onAction={() => { eventForm.reset(); setAddEventOpen(true); }} />
                   ) : (
-                    <div className="rounded-xl overflow-hidden shadow-lg print:overflow-visible" style={{ background: "rgba(255, 255, 255, 0.05)", backdropFilter: "blur(5px)" }}>
+                    <div className="rounded-xl overflow-hidden shadow-lg print:overflow-visible" style={{ background: "linear-gradient(to bottom, #003d5c, #00455c)", backdropFilter: "blur(5px)" }}>
                       <div className="overflow-x-auto print:overflow-visible">
                         <table className="w-full">
                           <thead>
@@ -498,7 +498,7 @@ export default function CalendarPage() {
                   )}
                 </div>
 
-                <div className="rounded-2xl p-5 backdrop-blur-lg" style={{ background: "rgba(255, 255, 255, 0.1)", border: "1px solid rgba(255, 255, 255, 0.15)" }}>
+                <div className="rounded-2xl p-5 backdrop-blur-lg" style={{ background: "linear-gradient(to bottom, #003d5c, #00455c)", border: "1px solid rgba(255, 255, 255, 0.15)" }}>
                   <h3 className="text-xl font-black mb-4 flex items-center gap-2" style={{ color: "#FFFFFF" }}>
                     <CheckSquare className="w-6 h-6" style={{ color: "#96CEB4" }} />
                     Task Schedule

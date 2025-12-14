@@ -8,472 +8,909 @@ import { LoadingSpinner } from "@/components/loading-spinner";
 import { EmptyState } from "@/components/empty-state";
 import {
   FileText,
-  X,
-  ChevronLeft,
-  ChevronRight,
-  Download,
-  ExternalLink,
   Folder,
+  FolderOpen,
+  ChevronRight,
   ChevronDown,
-  ChevronRight as ChevronRightIcon,
+  Download,
+  Eye,
+  FileIcon,
+  File,
+  FileSpreadsheet,
+  Presentation,
 } from "lucide-react";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import type { GalleryImage, DriveFolder } from "@shared/schema";
+import type { DriveFolder, DriveFile } from "@shared/schema";
 
-interface ImageModalProps {
-  image: GalleryImage;
-  onClose: () => void;
-  onPrev: () => void;
-  onNext: () => void;
-  hasPrev: boolean;
-  hasNext: boolean;
+const API_KEY = "AIzaSyCDcthLGNPlbMr4AFzuK5tl0CMTzsQI9EI";
+const ROOT_FOLDER_ID = "15_xiFeXu_vdIe2CYrjGaRCAho2OqhGvo";
+
+const fileTypeIcons: Record<string, { icon: string; color: string }> = {
+  // Word Documents
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document": {
+    icon: "DOCX",
+    color: "#2B579A",
+  },
+  "application/msword": {
+    icon: "DOC",
+    color: "#2B579A",
+  },
+  "application/vnd.ms-word.document.macroEnabled.12": {
+    icon: "DOCM",
+    color: "#2B579A",
+  },
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.template": {
+    icon: "DOTX",
+    color: "#2B579A",
+  },
+  "application/vnd.ms-word.template.macroEnabled.12": {
+    icon: "DOTM",
+    color: "#2B579A",
+  },
+
+  // Excel Spreadsheets
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+    icon: "XLSX",
+    color: "#217346",
+  },
+  "application/vnd.ms-excel": {
+    icon: "XLS",
+    color: "#217346",
+  },
+  "application/vnd.ms-excel.sheet.macroEnabled.12": {
+    icon: "XLSM",
+    color: "#217346",
+  },
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.template": {
+    icon: "XLTX",
+    color: "#217346",
+  },
+
+  // PowerPoint Presentations
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation": {
+    icon: "PPTX",
+    color: "#D24726",
+  },
+  "application/vnd.ms-powerpoint": {
+    icon: "PPT",
+    color: "#D24726",
+  },
+  "application/vnd.ms-powerpoint.presentation.macroEnabled.12": {
+    icon: "PPTM",
+    color: "#D24726",
+  },
+  "application/vnd.openxmlformats-officedocument.presentationml.template": {
+    icon: "POTX",
+    color: "#D24726",
+  },
+
+  // Other Documents
+  "application/pdf": {
+    icon: "PDF",
+    color: "#DC3545",
+  },
+  "text/plain": {
+    icon: "TXT",
+    color: "#6c757d",
+  },
+  "text/csv": {
+    icon: "CSV",
+    color: "#217346",
+  },
+
+  // Default
+  default: {
+    icon: "FILE",
+    color: "#6c757d",
+  },
+};
+
+const documentTypeGroups = {
+  word: {
+    name: "Word Documents",
+    icon: <FileText className="w-5 h-5" />,
+    mimeTypes: [
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "application/msword",
+      "application/vnd.ms-word.document.macroEnabled.12",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.template",
+      "application/vnd.ms-word.template.macroEnabled.12",
+    ],
+    extensions: [".docx", ".doc", ".docm", ".dotx", ".dotm"],
+  },
+  excel: {
+    name: "Excel Spreadsheets",
+    icon: <FileSpreadsheet className="w-5 h-5" />,
+    mimeTypes: [
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "application/vnd.ms-excel",
+      "application/vnd.ms-excel.sheet.macroEnabled.12",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.template",
+    ],
+    extensions: [".xlsx", ".xls", ".xlsm", ".xltx", ".csv"],
+  },
+  powerpoint: {
+    name: "PowerPoint Presentations",
+    icon: <Presentation className="w-5 h-5" />,
+    mimeTypes: [
+      "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+      "application/vnd.ms-powerpoint",
+      "application/vnd.ms-powerpoint.presentation.macroEnabled.12",
+      "application/vnd.openxmlformats-officedocument.presentationml.template",
+    ],
+    extensions: [".pptx", ".ppt", ".pptm", ".potx"],
+  },
+  pdf: {
+    name: "PDF Documents",
+    icon: <FileText className="w-5 h-5" />,
+    mimeTypes: ["application/pdf"],
+    extensions: [".pdf"],
+  },
+  text: {
+    name: "Text Files",
+    icon: <FileText className="w-5 h-5" />,
+    mimeTypes: ["text/plain", "text/csv"],
+    extensions: [".txt", ".csv"],
+  },
+};
+
+interface SidebarFolderItemProps {
+  folderId: string;
+  level: number;
+  expandedFolders: Set<string>;
+  selectedFolderId: string | null;
+  onToggleExpand: (folderId: string) => void;
+  onSelectFolder: (folderId: string) => void;
 }
 
-function ImageModal({
-  image,
-  onClose,
-  onPrev,
-  onNext,
-  hasPrev,
-  hasNext,
-}: ImageModalProps) {
+function SidebarFolderItem({
+  folderId,
+  level,
+  expandedFolders,
+  selectedFolderId,
+  onToggleExpand,
+  onSelectFolder,
+}: SidebarFolderItemProps) {
+  const isExpanded = expandedFolders.has(folderId);
+  const isSelected = selectedFolderId === folderId;
+
+  // Fetch folder name
+  const { data: folderName = "Untitled Folder" } = useQuery<string>({
+    queryKey: ["folderName", folderId],
+    queryFn: async () => {
+      const url = `https://www.googleapis.com/drive/v3/files/${folderId}?key=${API_KEY}&fields=name`;
+      const response = await fetch(url);
+      const data = await response.json();
+      return data.name || "Untitled Folder";
+    },
+  });
+
+  // Fetch subfolders when expanded
+  const { data: subfolders = [], isLoading: subfoldersLoading } = useQuery<
+    { id: string }[]
+  >({
+    queryKey: ["subfolders", folderId],
+    queryFn: async () => {
+      if (!isExpanded) return [];
+
+      const url = `https://www.googleapis.com/drive/v3/files?q='${folderId}'+in+parents+and+mimeType='application/vnd.google-apps.folder'+and+trashed=false&key=${API_KEY}&fields=files(id)`;
+      const response = await fetch(url);
+      const data = await response.json();
+      return data.files || [];
+    },
+    enabled: isExpanded,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{ background: "rgba(0, 0, 0, 0.9)" }}
-      onClick={onClose}
-      data-testid="image-modal"
-    >
+    <div>
       <button
-        onClick={onClose}
-        className="absolute top-4 right-4 w-12 h-12 rounded-full flex items-center justify-center transition-all hover:rotate-90"
-        style={{ background: "rgba(255, 255, 255, 0.2)" }}
-        data-testid="button-close-modal"
+        onClick={() => {
+          onToggleExpand(folderId);
+          onSelectFolder(folderId);
+        }}
+        className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
+          isSelected ? "bg-[#FFEAA7]/30" : "hover:bg-white/10"
+        }`}
+        style={{ paddingLeft: `${12 + level * 16}px`, color: "#5D4037" }}
+        data-testid={`folder-${folderId}`}
       >
-        <X className="w-6 h-6 text-white" />
+        {isExpanded ? (
+          <ChevronDown className="w-4 h-4" />
+        ) : (
+          <ChevronRight className="w-4 h-4" />
+        )}
+        {isExpanded ? (
+          <FolderOpen className="w-5 h-5" style={{ color: "#D68A3D" }} />
+        ) : (
+          <Folder className="w-5 h-5" style={{ color: "#D68A3D" }} />
+        )}
+        <span className="font-medium text-sm truncate">{folderName}</span>
       </button>
 
-      {hasPrev && (
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onPrev();
-          }}
-          className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full flex items-center justify-center transition-colors hover:bg-white/30"
-          style={{ background: "rgba(255, 255, 255, 0.2)" }}
-          data-testid="button-prev-image"
-        >
-          <ChevronLeft className="w-6 h-6 text-white" />
-        </button>
-      )}
-
-      {hasNext && (
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onNext();
-          }}
-          className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full flex items-center justify-center transition-colors hover:bg-white/30"
-          style={{ background: "rgba(255, 255, 255, 0.2)" }}
-          data-testid="button-next-image"
-        >
-          <ChevronRight className="w-6 h-6 text-white" />
-        </button>
-      )}
-
-      <div
-        className="max-w-5xl max-h-[80vh] flex flex-col items-center"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <img
-          src={image.webContentLink || image.thumbnailLink}
-          alt={image.name}
-          className="max-w-full max-h-[60vh] object-contain rounded-lg shadow-2xl"
-        />
-
-        <div className="mt-6 text-center">
-          <h3 className="text-xl font-bold text-white mb-2">{image.name}</h3>
-          {image.description && (
-            <p className="text-sm text-white/70 mb-4">{image.description}</p>
+      {isExpanded && (
+        <div>
+          {subfoldersLoading ? (
+            <div className="flex justify-center py-2">
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          ) : (
+            subfolders.map((subfolder) => (
+              <SidebarFolderItem
+                key={subfolder.id}
+                folderId={subfolder.id}
+                level={level + 1}
+                expandedFolders={expandedFolders}
+                selectedFolderId={selectedFolderId}
+                onToggleExpand={onToggleExpand}
+                onSelectFolder={onSelectFolder}
+              />
+            ))
           )}
-
-          <div className="flex items-center justify-center gap-3">
-            {image.webContentLink && (
-              <a
-                href={image.webContentLink}
-                download
-                className="flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-colors"
-                style={{
-                  background: "rgba(255, 255, 255, 0.2)",
-                  color: "white",
-                }}
-                data-testid="button-download-image"
-              >
-                <Download className="w-4 h-4" />
-                Download
-              </a>
-            )}
-            {image.webViewLink && (
-              <a
-                href={image.webViewLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-colors"
-                style={{
-                  background: "rgba(255, 255, 255, 0.2)",
-                  color: "white",
-                }}
-                data-testid="button-open-image"
-              >
-                <ExternalLink className="w-4 h-4" />
-                Open
-              </a>
-            )}
-          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
 
-export default function Gallery() {
+function isDocumentFile(mimeType: string, fileName: string): boolean {
+  const documentMimeTypes = [
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "application/msword",
+    "application/vnd.ms-word.document.macroEnabled.12",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.template",
+    "application/vnd.ms-word.template.macroEnabled.12",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "application/vnd.ms-excel",
+    "application/vnd.ms-excel.sheet.macroEnabled.12",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.template",
+    "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+    "application/vnd.ms-powerpoint",
+    "application/vnd.ms-powerpoint.presentation.macroEnabled.12",
+    "application/vnd.openxmlformats-officedocument.presentationml.template",
+    "application/pdf",
+    "text/plain",
+    "text/csv",
+  ];
+
+  if (documentMimeTypes.includes(mimeType)) {
+    return true;
+  }
+
+  // Also check by file extension for cases where MIME type isn't sufficient
+  const documentExtensions = [
+    ".docx",
+    ".doc",
+    ".docm",
+    ".dotx",
+    ".dotm",
+    ".xlsx",
+    ".xls",
+    ".xlsm",
+    ".xltx",
+    ".pptx",
+    ".ppt",
+    ".pptm",
+    ".potx",
+    ".pdf",
+    ".txt",
+    ".csv",
+  ];
+
+  const lowerFileName = fileName.toLowerCase();
+  return documentExtensions.some((ext) => lowerFileName.endsWith(ext));
+}
+
+function getFileTypeConfig(mimeType: string, fileName: string) {
+  // First check by MIME type
+  if (fileTypeIcons[mimeType]) {
+    return fileTypeIcons[mimeType];
+  }
+
+  // Then check by file extension
+  const extension = fileName.split(".").pop()?.toLowerCase() || "";
+  switch (extension) {
+    case "docx":
+      return fileTypeIcons[
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      ];
+    case "doc":
+      return fileTypeIcons["application/msword"];
+    case "docm":
+      return fileTypeIcons["application/vnd.ms-word.document.macroEnabled.12"];
+    case "dotx":
+      return fileTypeIcons[
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.template"
+      ];
+    case "dotm":
+      return fileTypeIcons["application/vnd.ms-word.template.macroEnabled.12"];
+    case "xlsx":
+      return fileTypeIcons[
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      ];
+    case "xls":
+      return fileTypeIcons["application/vnd.ms-excel"];
+    case "xlsm":
+      return fileTypeIcons["application/vnd.ms-excel.sheet.macroEnabled.12"];
+    case "xltx":
+      return fileTypeIcons[
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.template"
+      ];
+    case "pptx":
+      return fileTypeIcons[
+        "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+      ];
+    case "ppt":
+      return fileTypeIcons["application/vnd.ms-powerpoint"];
+    case "pptm":
+      return fileTypeIcons[
+        "application/vnd.ms-powerpoint.presentation.macroEnabled.12"
+      ];
+    case "potx":
+      return fileTypeIcons[
+        "application/vnd.openxmlformats-officedocument.presentationml.template"
+      ];
+    case "pdf":
+      return fileTypeIcons["application/pdf"];
+    case "txt":
+      return fileTypeIcons["text/plain"];
+    case "csv":
+      return fileTypeIcons["text/csv"];
+    default:
+      return fileTypeIcons["default"];
+  }
+}
+
+function getDocumentType(mimeType: string, fileName: string): string {
+  const lowerFileName = fileName.toLowerCase();
+
+  // Check Word documents
+  if (
+    documentTypeGroups.word.mimeTypes.includes(mimeType) ||
+    documentTypeGroups.word.extensions.some((ext) =>
+      lowerFileName.endsWith(ext),
+    )
+  ) {
+    return "word";
+  }
+
+  // Check Excel documents
+  if (
+    documentTypeGroups.excel.mimeTypes.includes(mimeType) ||
+    documentTypeGroups.excel.extensions.some((ext) =>
+      lowerFileName.endsWith(ext),
+    )
+  ) {
+    return "excel";
+  }
+
+  // Check PowerPoint documents
+  if (
+    documentTypeGroups.powerpoint.mimeTypes.includes(mimeType) ||
+    documentTypeGroups.powerpoint.extensions.some((ext) =>
+      lowerFileName.endsWith(ext),
+    )
+  ) {
+    return "powerpoint";
+  }
+
+  // Check PDF documents
+  if (
+    documentTypeGroups.pdf.mimeTypes.includes(mimeType) ||
+    documentTypeGroups.pdf.extensions.some((ext) => lowerFileName.endsWith(ext))
+  ) {
+    return "pdf";
+  }
+
+  // Check Text documents
+  if (
+    documentTypeGroups.text.mimeTypes.includes(mimeType) ||
+    documentTypeGroups.text.extensions.some((ext) =>
+      lowerFileName.endsWith(ext),
+    )
+  ) {
+    return "text";
+  }
+
+  return "other";
+}
+
+function formatFileSize(bytes?: string) {
+  if (!bytes) return "Unknown";
+  const size = parseInt(bytes);
+  if (size === 0) return "0 Bytes";
+  const k = 1024;
+  const sizes = ["Bytes", "KB", "MB", "GB"];
+  const i = Math.floor(Math.log(size) / Math.log(k));
+  return parseFloat((size / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+}
+
+export default function Documents() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
-  const [selectedImage, setSelectedImage] = useState<number | null>(null);
-  const [openFolders, setOpenFolders] = useState<Set<string>>(new Set());
-  const [openSubfolders, setOpenSubfolders] = useState<Set<string>>(new Set());
-
-  const { data: folders = [], isLoading: foldersLoading } = useQuery<
-    DriveFolder[]
-  >({
-    queryKey: ["/api/gallery/folders"],
-  });
-
-  const { data: images = [], isLoading: imagesLoading } = useQuery<
-    GalleryImage[]
-  >({
-    queryKey: ["/api/gallery/images", selectedFolder],
-    queryFn: async () => {
-      const res = await fetch(`/api/gallery/images?folderId=${selectedFolder}`);
-      if (!res.ok) throw new Error("Failed to fetch images");
-      return res.json();
-    },
-    enabled: !!selectedFolder,
-  });
-
-  const isLoading = foldersLoading || imagesLoading;
-
-  const filteredImages = images.filter((img) =>
-    img.name.toLowerCase().includes(searchQuery.toLowerCase()),
+  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(
+    new Set(),
   );
+  const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<DriveFile | null>(null);
 
-  const handlePrevImage = () => {
-    if (selectedImage !== null && selectedImage > 0) {
-      setSelectedImage(selectedImage - 1);
-    }
-  };
+  // Fetch root folders
+  const { data: rootFolders = [], isLoading: foldersLoading } = useQuery<
+    { id: string }[]
+  >({
+    queryKey: ["rootFolders", ROOT_FOLDER_ID],
+    queryFn: async () => {
+      const url = `https://www.googleapis.com/drive/v3/files?q='${ROOT_FOLDER_ID}'+in+parents+and+mimeType='application/vnd.google-apps.folder'+and+trashed=false&key=${API_KEY}&fields=files(id)`;
+      const response = await fetch(url);
+      const data = await response.json();
+      return data.files || [];
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
 
-  const handleNextImage = () => {
-    if (selectedImage !== null && selectedImage < filteredImages.length - 1) {
-      setSelectedImage(selectedImage + 1);
-    }
-  };
+  // Fetch files for selected folder
+  const { data: files = [], isLoading: filesLoading } = useQuery<DriveFile[]>({
+    queryKey: ["files", selectedFolderId],
+    queryFn: async () => {
+      if (!selectedFolderId) return [];
 
-  const toggleFolder = (folderId: string) => {
-    const newOpenFolders = new Set(openFolders);
-    if (newOpenFolders.has(folderId)) {
-      newOpenFolders.delete(folderId);
+      const url = `https://www.googleapis.com/drive/v3/files?q='${selectedFolderId}'+in+parents+and+trashed=false&key=${API_KEY}&fields=files(id,name,mimeType,webContentLink,webViewLink,size,modifiedTime)`;
+      const response = await fetch(url);
+      const data = await response.json();
+      return data.files || [];
+    },
+    enabled: !!selectedFolderId,
+    staleTime: 2 * 60 * 1000, // 2 minutes
+  });
+
+  // Fetch folder name for display
+  const { data: selectedFolderName = "Documents" } = useQuery<string>({
+    queryKey: ["folderName", selectedFolderId],
+    queryFn: async () => {
+      if (!selectedFolderId) return "Documents";
+
+      const url = `https://www.googleapis.com/drive/v3/files/${selectedFolderId}?key=${API_KEY}&fields=name`;
+      const response = await fetch(url);
+      const data = await response.json();
+      return data.name || "Documents";
+    },
+    enabled: !!selectedFolderId,
+  });
+
+  const toggleFolderExpand = (folderId: string) => {
+    const newExpanded = new Set(expandedFolders);
+    if (newExpanded.has(folderId)) {
+      newExpanded.delete(folderId);
     } else {
-      newOpenFolders.add(folderId);
+      newExpanded.add(folderId);
     }
-    setOpenFolders(newOpenFolders);
+    setExpandedFolders(newExpanded);
   };
 
-  const toggleSubfolder = (subfolderId: string) => {
-    const newOpenSubfolders = new Set(openSubfolders);
-    if (newOpenSubfolders.has(subfolderId)) {
-      newOpenSubfolders.delete(subfolderId);
-    } else {
-      newOpenSubfolders.add(subfolderId);
-    }
-    setOpenSubfolders(newOpenSubfolders);
+  const handleSelectFolder = (folderId: string) => {
+    setSelectedFolderId(folderId);
+    setSelectedFile(null);
   };
+
+  // Filter document files only
+  const documentFiles = files
+    .filter((file) => isDocumentFile(file.mimeType || "", file.name || ""))
+    .filter((file) =>
+      file.name?.toLowerCase().includes(searchQuery.toLowerCase()),
+    );
+
+  // Group files by document type
+  const groupedFiles = documentFiles.reduce(
+    (acc, file) => {
+      const docType = getDocumentType(file.mimeType || "", file.name || "");
+      if (!acc[docType]) {
+        acc[docType] = [];
+      }
+      acc[docType].push(file);
+      return acc;
+    },
+    {} as Record<string, DriveFile[]>,
+  );
 
   return (
     <div
       className="min-h-screen flex flex-col"
-      style={{ background: "#1A1E32" }}
+      style={{ background: "linear-gradient(135deg, #FFF8E1, #FFECB3)" }}
     >
       <BackgroundPattern />
-      <Header title="PHOTO GALLERY" showBack />
+      <Header title="DOCUMENT MANAGEMENT" showBack />
 
       <main className="flex-1 relative z-10 px-4 md:px-8 py-8">
         <div className="max-w-7xl mx-auto">
           <div
-            className="rounded-3xl p-6 md:p-8"
+            className="rounded-3xl p-6 md:p-8 shadow-2xl"
             style={{
-              background: "rgba(14, 33, 72, 0.85)",
-              backdropFilter: "blur(25px)",
-              border: "1px solid rgba(121, 101, 193, 0.4)",
-              boxShadow: "0 12px 40px rgba(0, 0, 0, 0.3)",
+              background: "rgba(255, 255, 255, 0.95)",
+              border: "1px solid rgba(214, 138, 61, 0.3)",
             }}
           >
             <div
               className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 mb-8 pb-6 border-b-2"
-              style={{ borderColor: "rgba(121, 101, 193, 0.4)" }}
+              style={{ borderColor: "rgba(214, 138, 61, 0.3)" }}
             >
               <div className="flex items-center gap-4">
                 <div
-                  className="w-12 h-12 rounded-xl flex items-center justify-center"
+                  className="w-12 h-12 rounded-xl flex items-center justify-center shadow-md"
                   style={{
-                    background: "linear-gradient(135deg, #C82A52, #C82A52CC)",
+                    background: "linear-gradient(135deg, #FFEAA7, #FFD54F)",
+                    border: "1px solid #D68A3D",
                   }}
                 >
-                  <FileText className="w-6 h-6 text-white" />
+                  <FileText className="w-6 h-6 text-[#5D4037]" />
                 </div>
                 <h2
                   className="text-2xl md:text-3xl font-extrabold"
                   style={{
-                    color: "#E3D095",
-                    textShadow: "0 2px 4px rgba(0, 0, 0, 0.3)",
+                    color: "#5D4037",
                   }}
-                  data-testid="text-gallery-title"
                 >
-                  Photo Gallery
+                  Document Management
                 </h2>
               </div>
               <SearchBar
                 value={searchQuery}
                 onChange={setSearchQuery}
-                placeholder="Search photos..."
+                placeholder="Search documents..."
+                className="bg-white border-2 border-[#FFEAA7] focus:border-[#FFD54F]"
               />
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div
-                className="rounded-xl p-4 lg:col-span-1"
-                style={{ background: "rgba(255, 255, 255, 0.05)" }}
+                className="rounded-xl p-4 lg:col-span-1 max-h-[600px] overflow-y-auto shadow-inner"
+                style={{ background: "rgba(255, 236, 179, 0.3)" }}
               >
                 <h3
                   className="font-semibold mb-4 flex items-center gap-2"
-                  style={{ color: "#E3D095" }}
+                  style={{ color: "#5D4037" }}
                 >
-                  <Folder className="w-5 h-5" style={{ color: "#C82A52" }} />
-                  Categories
+                  <Folder className="w-5 h-5" style={{ color: "#D68A3D" }} />
+                  Folders
                 </h3>
 
                 {foldersLoading ? (
                   <LoadingSpinner size="sm" />
-                ) : folders.length === 0 ? (
+                ) : rootFolders.length === 0 ? (
                   <p
                     className="text-sm text-center py-8"
-                    style={{ color: "rgba(227, 208, 149, 0.6)" }}
+                    style={{ color: "rgba(93, 64, 55, 0.7)" }}
                   >
-                    No categories available
+                    No folders available
                   </p>
                 ) : (
                   <div className="space-y-1">
-                    {folders.map((folder) => (
-                      <Collapsible
+                    {rootFolders.map((folder) => (
+                      <SidebarFolderItem
                         key={folder.id}
-                        open={openFolders.has(folder.id)}
-                        onOpenChange={() => toggleFolder(folder.id)}
-                      >
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-1">
-                            <CollapsibleTrigger asChild>
-                              <button
-                                className="p-1 hover:bg-white/10 rounded transition-colors"
-                                style={{ color: "#E3D095" }}
-                              >
-                                {openFolders.has(folder.id) ? (
-                                  <ChevronDown className="w-4 h-4" />
-                                ) : (
-                                  <ChevronRightIcon className="w-4 h-4" />
-                                )}
-                              </button>
-                            </CollapsibleTrigger>
-                            <button
-                              onClick={() => setSelectedFolder(folder.id)}
-                              className={`flex-1 flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-left ${selectedFolder === folder.id ? "bg-[#C82A52]/30" : "hover:bg-white/10"}`}
-                              style={{ color: "#E3D095" }}
-                              data-testid={`folder-${folder.id}`}
-                            >
-                              <Folder
-                                className="w-4 h-4"
-                                style={{
-                                  color:
-                                    selectedFolder === folder.id
-                                      ? "#C82A52"
-                                      : "rgba(227, 208, 149, 0.6)",
-                                }}
-                              />
-                              <span className="text-sm font-medium truncate">
-                                {folder.name}
-                              </span>
-                            </button>
-                          </div>
-
-                          {folder.subfolders &&
-                            folder.subfolders.length > 0 && (
-                              <CollapsibleContent className="ml-6 space-y-1">
-                                {folder.subfolders.map((subfolder) => (
-                                  <Collapsible
-                                    key={subfolder.id}
-                                    open={openSubfolders.has(subfolder.id)}
-                                    onOpenChange={() =>
-                                      toggleSubfolder(subfolder.id)
-                                    }
-                                  >
-                                    <div className="space-y-1">
-                                      <div className="flex items-center gap-1">
-                                        {subfolder.subfolders &&
-                                          subfolder.subfolders.length > 0 && (
-                                            <CollapsibleTrigger asChild>
-                                              <button
-                                                className="p-1 hover:bg-white/10 rounded transition-colors"
-                                                style={{ color: "#E3D095" }}
-                                              >
-                                                {openSubfolders.has(
-                                                  subfolder.id,
-                                                ) ? (
-                                                  <ChevronDown className="w-3 h-3" />
-                                                ) : (
-                                                  <ChevronRightIcon className="w-3 h-3" />
-                                                )}
-                                              </button>
-                                            </CollapsibleTrigger>
-                                          )}
-                                        <button
-                                          onClick={() =>
-                                            setSelectedFolder(subfolder.id)
-                                          }
-                                          className={`flex-1 flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-left ${selectedFolder === subfolder.id ? "bg-[#C82A52]/30" : "hover:bg-white/10"} ${!(subfolder.subfolders && subfolder.subfolders.length > 0) ? "ml-5" : ""}`}
-                                          style={{ color: "#E3D095" }}
-                                          data-testid={`subfolder-${subfolder.id}`}
-                                        >
-                                          <Folder
-                                            className="w-3 h-3"
-                                            style={{
-                                              color:
-                                                selectedFolder === subfolder.id
-                                                  ? "#C82A52"
-                                                  : "rgba(227, 208, 149, 0.6)",
-                                            }}
-                                          />
-                                          <span className="text-sm font-medium truncate">
-                                            {subfolder.name}
-                                          </span>
-                                        </button>
-                                      </div>
-
-                                      {subfolder.subfolders &&
-                                        subfolder.subfolders.length > 0 && (
-                                          <CollapsibleContent className="ml-5 space-y-1">
-                                            {subfolder.subfolders.map(
-                                              (childFolder) => (
-                                                <button
-                                                  key={childFolder.id}
-                                                  onClick={() =>
-                                                    setSelectedFolder(
-                                                      childFolder.id,
-                                                    )
-                                                  }
-                                                  className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-left ${selectedFolder === childFolder.id ? "bg-[#C82A52]/30" : "hover:bg-white/10"}`}
-                                                  style={{ color: "#E3D095" }}
-                                                  data-testid={`child-folder-${childFolder.id}`}
-                                                >
-                                                  <Folder
-                                                    className="w-3 h-3"
-                                                    style={{
-                                                      color:
-                                                        selectedFolder ===
-                                                        childFolder.id
-                                                          ? "#C82A52"
-                                                          : "rgba(227, 208, 149, 0.6)",
-                                                    }}
-                                                  />
-                                                  <span className="text-sm font-medium truncate">
-                                                    {childFolder.name}
-                                                  </span>
-                                                </button>
-                                              ),
-                                            )}
-                                          </CollapsibleContent>
-                                        )}
-                                    </div>
-                                  </Collapsible>
-                                ))}
-                              </CollapsibleContent>
-                            )}
-                        </div>
-                      </Collapsible>
+                        folderId={folder.id}
+                        level={0}
+                        expandedFolders={expandedFolders}
+                        selectedFolderId={selectedFolderId}
+                        onToggleExpand={toggleFolderExpand}
+                        onSelectFolder={handleSelectFolder}
+                      />
                     ))}
                   </div>
                 )}
               </div>
 
-              <div className="lg:col-span-3">
-                {!selectedFolder ? (
+              <div
+                className="rounded-xl p-6 lg:col-span-2 shadow-inner"
+                style={{ background: "rgba(255, 255, 255, 0.7)" }}
+              >
+                {selectedFile ? (
+                  <div className="space-y-6">
+                    <div className="flex items-start gap-4">
+                      <div
+                        className="w-16 h-16 rounded-xl flex items-center justify-center text-lg font-bold text-white shadow-md"
+                        style={{
+                          background: getFileTypeConfig(
+                            selectedFile.mimeType || "",
+                            selectedFile.name || "",
+                          ).color,
+                        }}
+                      >
+                        {getFileTypeConfig(
+                          selectedFile.mimeType || "",
+                          selectedFile.name || "",
+                        ).icon.slice(0, 4)}
+                      </div>
+                      <div className="flex-1">
+                        <h3
+                          className="text-xl font-bold mb-1"
+                          style={{ color: "#5D4037" }}
+                          data-testid="text-file-name"
+                        >
+                          {selectedFile.name}
+                        </h3>
+                        <p
+                          className="text-sm"
+                          style={{ color: "rgba(93, 64, 55, 0.7)" }}
+                        >
+                          {selectedFile.mimeType}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div
+                      className="grid grid-cols-2 gap-4 p-4 rounded-xl"
+                      style={{ background: "rgba(255, 234, 167, 0.5)" }}
+                    >
+                      <div>
+                        <p
+                          className="text-xs mb-1"
+                          style={{ color: "rgba(93, 64, 55, 0.7)" }}
+                        >
+                          Size
+                        </p>
+                        <p
+                          className="font-semibold"
+                          style={{ color: "#5D4037" }}
+                        >
+                          {formatFileSize(selectedFile.size)}
+                        </p>
+                      </div>
+                      <div>
+                        <p
+                          className="text-xs mb-1"
+                          style={{ color: "rgba(93, 64, 55, 0.7)" }}
+                        >
+                          Modified
+                        </p>
+                        <p
+                          className="font-semibold"
+                          style={{ color: "#5D4037" }}
+                        >
+                          {selectedFile.modifiedTime
+                            ? new Date(
+                                selectedFile.modifiedTime,
+                              ).toLocaleDateString()
+                            : "Unknown"}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-3">
+                      {selectedFile.webViewLink && (
+                        <a
+                          href={selectedFile.webViewLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                          style={{ background: "#FFD54F", color: "#5D4037" }}
+                          data-testid="button-view-file"
+                        >
+                          <Eye className="w-4 h-4" />
+                          View
+                        </a>
+                      )}
+                      {selectedFile.webContentLink && (
+                        <a
+                          href={selectedFile.webContentLink}
+                          download
+                          className="flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                          style={{
+                            background: "rgba(214, 138, 61, 0.2)",
+                            color: "#5D4037",
+                            border: "1px solid rgba(214, 138, 61, 0.3)",
+                          }}
+                          data-testid="button-download-file"
+                        >
+                          <Download className="w-4 h-4" />
+                          Download
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                ) : selectedFolderId ? (
+                  <div>
+                    <div className="mb-6">
+                      <h3
+                        className="text-xl font-bold mb-2 flex items-center gap-2"
+                        style={{ color: "#5D4037" }}
+                      >
+                        <FolderOpen
+                          className="w-5 h-5"
+                          style={{ color: "#D68A3D" }}
+                        />
+                        {selectedFolderName}
+                      </h3>
+                      <p
+                        className="text-sm"
+                        style={{ color: "rgba(93, 64, 55, 0.7)" }}
+                      >
+                        {documentFiles.length} document
+                        {documentFiles.length !== 1 ? "s" : ""}
+                      </p>
+                    </div>
+
+                    {filesLoading ? (
+                      <div className="flex justify-center py-8">
+                        <LoadingSpinner />
+                      </div>
+                    ) : documentFiles.length === 0 ? (
+                      <EmptyState
+                        icon={File}
+                        title="No documents found"
+                        description={
+                          searchQuery
+                            ? "No documents match your search criteria."
+                            : "This folder contains no documents."
+                        }
+                      />
+                    ) : (
+                      <div className="space-y-8">
+                        {Object.entries(documentTypeGroups).map(
+                          ([type, group]) => {
+                            const filesOfType = groupedFiles[type] || [];
+                            if (filesOfType.length === 0) return null;
+
+                            return (
+                              <div key={type}>
+                                <h4
+                                  className="text-lg font-bold mb-4 flex items-center gap-2"
+                                  style={{ color: "#5D4037" }}
+                                >
+                                  <div style={{ color: "#D68A3D" }}>
+                                    {group.icon}
+                                  </div>
+                                  {group.name}{" "}
+                                  <span className="text-sm font-normal opacity-75">
+                                    ({filesOfType.length})
+                                  </span>
+                                </h4>
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                                  {filesOfType.map((file) => {
+                                    const fileTypeConfig = getFileTypeConfig(
+                                      file.mimeType || "",
+                                      file.name || "",
+                                    );
+
+                                    return (
+                                      <div
+                                        key={file.id}
+                                        className="group relative rounded-xl overflow-hidden cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-xl shadow-md"
+                                        style={{
+                                          background:
+                                            "rgba(255, 255, 255, 0.9)",
+                                          border:
+                                            "1px solid rgba(214, 138, 61, 0.3)",
+                                        }}
+                                        onClick={() => setSelectedFile(file)}
+                                        data-testid={`file-card-${file.id}`}
+                                      >
+                                        <div className="p-5">
+                                          <div className="flex items-center justify-center mb-4">
+                                            <div
+                                              className="w-12 h-12 rounded-lg flex items-center justify-center text-xs font-bold text-white shadow-sm"
+                                              style={{
+                                                background:
+                                                  fileTypeConfig.color,
+                                              }}
+                                            >
+                                              {fileTypeConfig.icon.slice(0, 4)}
+                                            </div>
+                                          </div>
+                                          <h3
+                                            className="font-semibold text-white text-center truncate text-sm"
+                                            style={{ color: "#5D4037" }}
+                                          >
+                                            {file.name}
+                                          </h3>
+                                          <div className="flex items-center justify-between mt-3 text-xs">
+                                            <span
+                                              style={{
+                                                color: "rgba(93, 64, 55, 0.7)",
+                                              }}
+                                            >
+                                              {formatFileSize(file.size)}
+                                            </span>
+                                            <span
+                                              style={{
+                                                color: "rgba(93, 64, 55, 0.7)",
+                                              }}
+                                            >
+                                              {fileTypeConfig.icon}
+                                            </span>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            );
+                          },
+                        )}
+
+                        {/* Handle uncategorized files */}
+                        {groupedFiles.other &&
+                          groupedFiles.other.length > 0 && (
+                            <div>
+                              <h4
+                                className="text-lg font-bold mb-4 flex items-center gap-2"
+                                style={{ color: "#5D4037" }}
+                              >
+                                <FileIcon
+                                  className="w-5 h-5"
+                                  style={{ color: "#D68A3D" }}
+                                />
+                                Other Documents{" "}
+                                <span className="text-sm font-normal opacity-75">
+                                  ({groupedFiles.other.length})
+                                </span>
+                              </h4>
+                              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                                {groupedFiles.other.map((file) => {
+                                  const fileTypeConfig = getFileTypeConfig(
+                                    file.mimeType || "",
+                                    file.name || "",
+                                  );
+
+                                  return (
+                                    <div
+                                      key={file.id}
+                                      className="group relative rounded-xl overflow-hidden cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-xl shadow-md"
+                                      style={{
+                                        background: "rgba(255, 255, 255, 0.9)",
+                                        border:
+                                          "1px solid rgba(214, 138, 61, 0.3)",
+                                      }}
+                                      onClick={() => setSelectedFile(file)}
+                                      data-testid={`file-card-${file.id}`}
+                                    >
+                                      <div className="p-5">
+                                        <div className="flex items-center justify-center mb-4">
+                                          <div
+                                            className="w-12 h-12 rounded-lg flex items-center justify-center text-xs font-bold text-white shadow-sm"
+                                            style={{
+                                              background: fileTypeConfig.color,
+                                            }}
+                                          >
+                                            {fileTypeConfig.icon.slice(0, 4)}
+                                          </div>
+                                        </div>
+                                        <h3
+                                          className="font-semibold text-white text-center truncate text-sm"
+                                          style={{ color: "#5D4037" }}
+                                        >
+                                          {file.name}
+                                        </h3>
+                                        <div className="flex items-center justify-between mt-3 text-xs">
+                                          <span
+                                            style={{
+                                              color: "rgba(93, 64, 55, 0.7)",
+                                            }}
+                                          >
+                                            {formatFileSize(file.size)}
+                                          </span>
+                                          <span
+                                            style={{
+                                              color: "rgba(93, 64, 55, 0.7)",
+                                            }}
+                                          >
+                                            {fileTypeConfig.icon}
+                                          </span>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
+                      </div>
+                    )}
+                  </div>
+                ) : (
                   <EmptyState
                     icon={Folder}
-                    title="Select a category"
-                    description="Choose a photo category from the sidebar to view its images."
+                    title="Select a folder"
+                    description="Choose a folder from the folder tree to view its documents."
                   />
-                ) : imagesLoading ? (
-                  <LoadingSpinner message="Loading images..." />
-                ) : filteredImages.length === 0 ? (
-                  <EmptyState
-                    icon={FileText}
-                    title="No images found"
-                    description={
-                      searchQuery
-                        ? "Try adjusting your search."
-                        : "This category has no images yet."
-                    }
-                  />
-                ) : (
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    {filteredImages.map((image, idx) => (
-                      <div
-                        key={image.id}
-                        onClick={() => setSelectedImage(idx)}
-                        className="group relative rounded-xl overflow-hidden cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
-                        style={{
-                          background: "rgba(255, 255, 255, 0.1)",
-                          border: "1px solid rgba(121, 101, 193, 0.3)",
-                        }}
-                        data-testid={`image-card-${image.id}`}
-                      >
-                        <div className="aspect-square overflow-hidden">
-                          <img
-                            src={image.thumbnailLink || "/placeholder.jpg"}
-                            alt={image.name}
-                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-                            loading="lazy"
-                          />
-                        </div>
-
-                        <div
-                          className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end"
-                          style={{
-                            background:
-                              "linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 50%)",
-                          }}
-                        >
-                          <div className="p-3 w-full">
-                            <p className="text-sm font-medium text-white truncate">
-                              {image.name}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
                 )}
               </div>
             </div>
@@ -482,17 +919,6 @@ export default function Gallery() {
       </main>
 
       <Footer />
-
-      {selectedImage !== null && filteredImages[selectedImage] && (
-        <ImageModal
-          image={filteredImages[selectedImage]}
-          onClose={() => setSelectedImage(null)}
-          onPrev={handlePrevImage}
-          onNext={handleNextImage}
-          hasPrev={selectedImage > 0}
-          hasNext={selectedImage < filteredImages.length - 1}
-        />
-      )}
     </div>
   );
 }

@@ -16,10 +16,10 @@ export function Header({ title, showBack = false }: HeaderProps) {
     <header
       className="sticky top-0 z-50 w-full h-[70px] flex items-center justify-between px-4 md:px-8"
       style={{
-        background: "rgba(14, 33, 72, 0.95)",
+        background: "linear-gradient(135deg, #020964, #003375)",
         backdropFilter: "blur(15px)",
         boxShadow: "0 8px 32px rgba(0, 0, 0, 0.3)",
-        borderBottom: "1px solid rgba(121, 101, 193, 0.4)",
+        borderBottom: "2px solid rgba(162, 255, 236, 0.17)",
       }}
       data-testid="header"
     >

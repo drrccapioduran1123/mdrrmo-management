@@ -183,7 +183,7 @@ export default function Contacts() {
   const handlePrint = () => window.print();
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: "#1A1E32" }}>
+    <div className="min-h-screen flex flex-col" style={{ background: "linear-gradient(135deg, #70ffbc, #03966a)" }}>
       <BackgroundPattern />
       <Header title="CONTACT DIRECTORY" showBack />
 
@@ -192,7 +192,7 @@ export default function Contacts() {
           <div 
             className="rounded-3xl p-6 md:p-8"
             style={{
-              background: "rgba(14, 33, 72, 0.85)",
+              background: "linear-gradient(to bottom, #003d21, #025f43)",
               backdropFilter: "blur(25px)",
               border: "1px solid rgba(121, 101, 193, 0.4)",
               boxShadow: "0 12px 40px rgba(0, 0, 0, 0.3)"
@@ -202,7 +202,7 @@ export default function Contacts() {
               <div className="flex items-center gap-4">
                 <div 
                   className="w-12 h-12 rounded-xl flex items-center justify-center"
-                  style={{ background: "linear-gradient(135deg, #6F42C1, #6F42C1CC)" }}
+                  style={{ background: "rgba(32, 143, 26, 1)" }}
                 >
                   <Users className="w-6 h-6 text-white" />
                 </div>
@@ -234,7 +234,7 @@ export default function Contacts() {
                 onChange={(e) => setAgencyFilter(e.target.value)}
                 className="px-4 py-2 rounded-lg text-sm font-medium outline-none"
                 style={{
-                  background: "rgba(255, 255, 255, 0.1)",
+                  background: "rgba(0, 42, 1, 1)",
                   color: "#E3D095",
                   border: "1px solid rgba(121, 101, 193, 0.4)"
                 }}
@@ -249,7 +249,7 @@ export default function Contacts() {
               <div className="flex items-center gap-2 flex-wrap">
                 <Button
                   className="rounded-lg px-4 gap-2"
-                  style={{ background: "#6F42C1", color: "white" }}
+                  style={{ background: "linear-gradient(to bottom, #001f10, #002e20)", color: "white" }}
                   onClick={() => { addForm.reset(); setAddModalOpen(true); }}
                   data-testid="button-add-contact"
                 >
@@ -307,7 +307,7 @@ export default function Contacts() {
                 <div className="overflow-x-auto print:overflow-visible">
                   <table className="w-full" style={{ background: "rgba(255, 255, 255, 0.05)" }}>
                     <thead>
-                      <tr style={{ background: "linear-gradient(135deg, #7965C1, #483AA0)" }}>
+                      <tr style={{ background: "linear-gradient(to bottom, #001f10, #002e20)" }}>
                         <th className="text-left px-4 py-3 text-sm font-semibold uppercase tracking-wide text-white">Name</th>
                         <th className="text-left px-4 py-3 text-sm font-semibold uppercase tracking-wide text-white hidden md:table-cell">Agency</th>
                         <th className="text-left px-4 py-3 text-sm font-semibold uppercase tracking-wide text-white hidden lg:table-cell">Designation</th>
@@ -331,7 +331,7 @@ export default function Contacts() {
                             <div className="flex items-center gap-3">
                               <div 
                                 className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold"
-                                style={{ background: "linear-gradient(135deg, #6F42C1, #f30059)", color: "white" }}
+                                style={{ background: "linear-gradient(to bottom, #001f10, #002e20)", color: "white" }}
                               >
                                 {contact.name.split(" ").map(n => n[0]).join("").slice(0, 2)}
                               </div>
@@ -346,7 +346,7 @@ export default function Contacts() {
                               className="flex items-center gap-2 hover:underline"
                               style={{ color: "#E3D095" }}
                             >
-                              <Phone className="w-4 h-4" style={{ color: "#f30059" }} />
+                              <Phone className="w-4 h-4" style={{ color: "#4dff58" }} />
                               {contact.phoneNumber}
                             </a>
                           </td>
@@ -356,7 +356,7 @@ export default function Contacts() {
                               className="flex items-center gap-2 hover:underline"
                               style={{ color: "#E3D095" }}
                             >
-                              <Mail className="w-4 h-4" style={{ color: "#f30059" }} />
+                              <Mail className="w-4 h-4" style={{ color: "#4dff58" }} />
                               {contact.email}
                             </a>
                           </td>
@@ -364,7 +364,7 @@ export default function Contacts() {
                             <div className="flex items-center justify-center gap-2">
                               <button 
                                 className="p-2 rounded-lg transition-colors hover:bg-white/10"
-                                style={{ color: "#E3D095" }}
+                                style={{ color: "#002e20" }}
                                 onClick={() => handleEdit(contact, idx)}
                                 data-testid={`button-edit-${contact.id}`}
                               >
@@ -372,7 +372,7 @@ export default function Contacts() {
                               </button>
                               <button 
                                 className="p-2 rounded-lg transition-colors hover:bg-white/10"
-                                style={{ color: "#DC3545" }}
+                                style={{ color: "#002e20" }}
                                 onClick={() => handleDelete(contact, idx)}
                                 data-testid={`button-delete-${contact.id}`}
                               >
@@ -394,7 +394,7 @@ export default function Contacts() {
       <Footer />
 
       <Dialog open={addModalOpen} onOpenChange={setAddModalOpen}>
-        <DialogContent className="max-w-md" style={{ background: "#1A1E32", border: "1px solid rgba(121, 101, 193, 0.4)" }}>
+        <DialogContent className="max-w-md" style={{ background: "linear-gradient(to bottom, #001f10, #002e20)", border: "1px solid rgba(121, 101, 193, 0.4)" }}>
           <DialogHeader>
             <DialogTitle style={{ color: "#E3D095" }}>Add New Contact</DialogTitle>
             <DialogDescription style={{ color: "rgba(227, 208, 149, 0.6)" }}>
@@ -497,7 +497,7 @@ export default function Contacts() {
       </Dialog>
 
       <Dialog open={editModalOpen} onOpenChange={setEditModalOpen}>
-        <DialogContent className="max-w-md" style={{ background: "#1A1E32", border: "1px solid rgba(121, 101, 193, 0.4)" }}>
+        <DialogContent className="max-w-md" style={{ background: "linear-gradient(to bottom, #001f10, #002e20)", border: "1px solid rgba(121, 101, 193, 0.4)" }}>
           <DialogHeader>
             <DialogTitle style={{ color: "#E3D095" }}>Edit Contact</DialogTitle>
             <DialogDescription style={{ color: "rgba(227, 208, 149, 0.6)" }}>
@@ -605,7 +605,7 @@ export default function Contacts() {
       </Dialog>
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent style={{ background: "#1A1E32", border: "1px solid rgba(121, 101, 193, 0.4)" }}>
+        <AlertDialogContent style={{ background: "linear-gradient(to bottom, #001f10, #002e20)", border: "1px solid rgba(121, 101, 193, 0.4)" }}>
           <AlertDialogHeader>
             <AlertDialogTitle style={{ color: "#E3D095" }}>Delete Contact</AlertDialogTitle>
             <AlertDialogDescription style={{ color: "rgba(227, 208, 149, 0.6)" }}>

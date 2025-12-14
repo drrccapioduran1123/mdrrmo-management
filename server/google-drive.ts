@@ -1,17 +1,17 @@
 // Google Drive Integration for MDRRMO Pio Duran
 // Using the google-drive connector blueprint
 
-import { google } from 'googleapis';
-import type { DriveFolder, DriveFile, GalleryImage } from '@shared/schema';
+import { google } from "googleapis";
+import type { DriveFolder, DriveFile, GalleryImage } from "@shared/schema";
 
-const DOCUMENTS_ROOT_FOLDER_ID = '15_xiFeXu_vdIe2CYrjGaRCAho2OqhGvo';
+const DOCUMENTS_ROOT_FOLDER_ID = "15_xiFeXu_vdIe2CYrjGaRCAho2OqhGvo";
 
 const MAP_FOLDER_IDS = {
-  administrative: '1Wh2wSQuyzHiz25Vbr4ICETj18RRUEpvi',
-  topographic: '1Y01dJR_YJdixvsi_B9Xs7nQaXD31_Yn2',
-  'land-use': '1yQmtrKfKiMOFA933W0emzeGoexMpUDGM',
-  hazards: '16xy_oUAr6sWb3JE9eNrxYJdAMDRKGYLn',
-  other: '1MI1aO_-gQwsRbSJsfHY2FI4AOz9Jney1',
+  administrative: "1Wh2wSQuyzHiz25Vbr4ICETj18RRUEpvi",
+  topographic: "1Y01dJR_YJdixvsi_B9Xs7nQaXD31_Yn2",
+  "land-use": "1yQmtrKfKiMOFA933W0emzeGoexMpUDGM",
+  hazards: "16xy_oUAr6sWb3JE9eNrxYJdAMDRKGYLn",
+  other: "1MI1aO_-gQwsRbSJsfHY2FI4AOz9Jney1",
 };
 
 let connectionSettings: any = null;
@@ -19,54 +19,61 @@ let lastFetchTime = 0;
 
 async function getAccessToken(): Promise<string> {
   const now = Date.now();
-  
-  if (connectionSettings && 
-      connectionSettings.settings?.expires_at && 
-      new Date(connectionSettings.settings.expires_at).getTime() > now + 60000) {
+
+  if (
+    connectionSettings &&
+    connectionSettings.settings?.expires_at &&
+    new Date(connectionSettings.settings.expires_at).getTime() > now + 60000
+  ) {
     return connectionSettings.settings.access_token;
   }
 
   if (now - lastFetchTime < 5000) {
-    throw new Error('Token fetch rate limited');
+    throw new Error("Token fetch rate limited");
   }
-  
+
   const hostname = process.env.REPLIT_CONNECTORS_HOSTNAME;
-  const xReplitToken = process.env.REPL_IDENTITY 
-    ? 'repl ' + process.env.REPL_IDENTITY 
-    : process.env.WEB_REPL_RENEWAL 
-    ? 'depl ' + process.env.WEB_REPL_RENEWAL 
-    : null;
+  const xReplitToken = process.env.REPL_IDENTITY
+    ? "repl " + process.env.REPL_IDENTITY
+    : process.env.WEB_REPL_RENEWAL
+      ? "depl " + process.env.WEB_REPL_RENEWAL
+      : null;
 
   if (!xReplitToken || !hostname) {
-    throw new Error('Replit connector environment not available');
+    throw new Error("Replit connector environment not available");
   }
 
   lastFetchTime = now;
 
   const response = await fetch(
-    'https://' + hostname + '/api/v2/connection?include_secrets=true&connector_names=google-drive',
+    "https://" +
+      hostname +
+      "/api/v2/connection?include_secrets=true&connector_names=google-drive",
     {
       headers: {
-        'Accept': 'application/json',
-        'X_REPLIT_TOKEN': xReplitToken
-      }
-    }
+        Accept: "application/json",
+        X_REPLIT_TOKEN: xReplitToken,
+      },
+    },
   );
-  
+
   if (!response.ok) {
     throw new Error(`Connector fetch failed: ${response.status}`);
   }
-  
+
   const data = await response.json();
   connectionSettings = data.items?.[0];
 
-  const accessToken = connectionSettings?.settings?.access_token || 
-                      connectionSettings?.settings?.oauth?.credentials?.access_token;
+  const accessToken =
+    connectionSettings?.settings?.access_token ||
+    connectionSettings?.settings?.oauth?.credentials?.access_token;
 
   if (!connectionSettings || !accessToken) {
-    throw new Error('Google Drive connector not configured. Please connect your Google Drive in the integrations panel.');
+    throw new Error(
+      "Google Drive connector not configured. Please connect your Google Drive in the integrations panel.",
+    );
   }
-  
+
   return accessToken;
 }
 
@@ -75,45 +82,44 @@ async function getGoogleDriveClient() {
 
   const oauth2Client = new google.auth.OAuth2();
   oauth2Client.setCredentials({
-    access_token: accessToken
+    access_token: accessToken,
   });
 
-  return google.drive({ version: 'v3', auth: oauth2Client });
+  return google.drive({ version: "v3", auth: oauth2Client });
 }
-
-
 
 export async function getDocumentFolders(): Promise<DriveFolder[]> {
   try {
     const drive = await getGoogleDriveClient();
-    
+
     // Fetch only folders from the specific root folder
     const response = await drive.files.list({
       q: `'${DOCUMENTS_ROOT_FOLDER_ID}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`,
-      fields: 'files(id, name)',
+      fields: "files(id, name)",
       pageSize: 100,
-      orderBy: 'name',
+      orderBy: "name",
     });
 
     const folders = response.data.files || [];
-    
+
     if (folders.length === 0) {
-      console.warn('No folders found in the specified Google Drive folder');
+      console.warn("No folders found in the specified Google Drive folder");
       return [];
     }
-    
+
     // Fetch all files from the root folder (not from subfolders)
     const filesResponse = await drive.files.list({
       q: `'${DOCUMENTS_ROOT_FOLDER_ID}' in parents and mimeType!='application/vnd.google-apps.folder' and trashed=false`,
-      fields: 'files(id, name, mimeType, webViewLink, webContentLink, thumbnailLink, createdTime, modifiedTime, size)',
+      fields:
+        "files(id, name, mimeType, webViewLink, webContentLink, thumbnailLink, createdTime, modifiedTime, size)",
       pageSize: 500,
-      orderBy: 'name',
+      orderBy: "name",
     });
 
     const allFiles = filesResponse.data.files || [];
 
     // Create folder structure
-    const result: DriveFolder[] = folders.map(folder => ({
+    const result: DriveFolder[] = folders.map((folder) => ({
       id: folder.id!,
       name: folder.name!,
       files: [],
@@ -123,8 +129,8 @@ export async function getDocumentFolders(): Promise<DriveFolder[]> {
     if (allFiles.length > 0) {
       result.unshift({
         id: DOCUMENTS_ROOT_FOLDER_ID,
-        name: 'All Documents',
-        files: allFiles.map(file => ({
+        name: "All Documents",
+        files: allFiles.map((file) => ({
           id: file.id!,
           name: file.name!,
           mimeType: file.mimeType!,
@@ -140,12 +146,14 @@ export async function getDocumentFolders(): Promise<DriveFolder[]> {
 
     return result;
   } catch (error) {
-    console.error('Error fetching document folders from Google Drive:', error);
+    console.error("Error fetching document folders from Google Drive:", error);
     throw error;
   }
 }
 
-export async function getMapFolderContents(mapType: keyof typeof MAP_FOLDER_IDS): Promise<DriveFolder[]> {
+export async function getMapFolderContents(
+  mapType: keyof typeof MAP_FOLDER_IDS,
+): Promise<DriveFolder[]> {
   const folderId = MAP_FOLDER_IDS[mapType];
   if (!folderId) {
     throw new Error(`Unknown map type: ${mapType}`);
@@ -153,21 +161,22 @@ export async function getMapFolderContents(mapType: keyof typeof MAP_FOLDER_IDS)
 
   try {
     const drive = await getGoogleDriveClient();
-    
+
     const foldersResponse = await drive.files.list({
       q: `'${folderId}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`,
-      fields: 'files(id, name)',
+      fields: "files(id, name)",
       pageSize: 100,
-      orderBy: 'name',
+      orderBy: "name",
     });
 
     const folders = foldersResponse.data.files || [];
-    
+
     const filesInRootResponse = await drive.files.list({
       q: `'${folderId}' in parents and mimeType!='application/vnd.google-apps.folder' and trashed=false`,
-      fields: 'files(id, name, mimeType, webViewLink, webContentLink, thumbnailLink)',
+      fields:
+        "files(id, name, mimeType, webViewLink, webContentLink, thumbnailLink)",
       pageSize: 100,
-      orderBy: 'name',
+      orderBy: "name",
     });
 
     const rootFiles = filesInRootResponse.data.files || [];
@@ -177,8 +186,8 @@ export async function getMapFolderContents(mapType: keyof typeof MAP_FOLDER_IDS)
     if (rootFiles.length > 0) {
       result.push({
         id: folderId,
-        name: 'Root Files',
-        files: rootFiles.map(file => ({
+        name: "Root Files",
+        files: rootFiles.map((file) => ({
           id: file.id!,
           name: file.name!,
           mimeType: file.mimeType!,
@@ -193,13 +202,14 @@ export async function getMapFolderContents(mapType: keyof typeof MAP_FOLDER_IDS)
       folders.map(async (folder) => {
         const filesResponse = await drive.files.list({
           q: `'${folder.id}' in parents and trashed=false`,
-          fields: 'files(id, name, mimeType, webViewLink, webContentLink, thumbnailLink)',
+          fields:
+            "files(id, name, mimeType, webViewLink, webContentLink, thumbnailLink)",
           pageSize: 100,
         });
 
         const subFoldersResponse = await drive.files.list({
           q: `'${folder.id}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`,
-          fields: 'files(id, name)',
+          fields: "files(id, name)",
           pageSize: 50,
         });
 
@@ -207,8 +217,8 @@ export async function getMapFolderContents(mapType: keyof typeof MAP_FOLDER_IDS)
           id: folder.id!,
           name: folder.name!,
           files: (filesResponse.data.files || [])
-            .filter(f => f.mimeType !== 'application/vnd.google-apps.folder')
-            .map(file => ({
+            .filter((f) => f.mimeType !== "application/vnd.google-apps.folder")
+            .map((file) => ({
               id: file.id!,
               name: file.name!,
               mimeType: file.mimeType!,
@@ -216,12 +226,12 @@ export async function getMapFolderContents(mapType: keyof typeof MAP_FOLDER_IDS)
               webContentLink: file.webContentLink || undefined,
               thumbnailLink: file.thumbnailLink || undefined,
             })),
-          subfolders: (subFoldersResponse.data.files || []).map(sf => ({
+          subfolders: (subFoldersResponse.data.files || []).map((sf) => ({
             id: sf.id!,
             name: sf.name!,
           })),
         };
-      })
+      }),
     );
 
     result.push(...folderContents);
@@ -233,25 +243,28 @@ export async function getMapFolderContents(mapType: keyof typeof MAP_FOLDER_IDS)
   }
 }
 
-export async function getSubfolderContents(folderId: string): Promise<DriveFolder> {
+export async function getSubfolderContents(
+  folderId: string,
+): Promise<DriveFolder> {
   try {
     const drive = await getGoogleDriveClient();
-    
+
     const folderInfo = await drive.files.get({
       fileId: folderId,
-      fields: 'id, name',
+      fields: "id, name",
     });
 
     const filesResponse = await drive.files.list({
       q: `'${folderId}' in parents and trashed=false`,
-      fields: 'files(id, name, mimeType, webViewLink, webContentLink, thumbnailLink)',
+      fields:
+        "files(id, name, mimeType, webViewLink, webContentLink, thumbnailLink)",
       pageSize: 100,
-      orderBy: 'name',
+      orderBy: "name",
     });
 
     const subFoldersResponse = await drive.files.list({
       q: `'${folderId}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`,
-      fields: 'files(id, name)',
+      fields: "files(id, name)",
       pageSize: 50,
     });
 
@@ -259,8 +272,8 @@ export async function getSubfolderContents(folderId: string): Promise<DriveFolde
       id: folderInfo.data.id!,
       name: folderInfo.data.name!,
       files: (filesResponse.data.files || [])
-        .filter(f => f.mimeType !== 'application/vnd.google-apps.folder')
-        .map(file => ({
+        .filter((f) => f.mimeType !== "application/vnd.google-apps.folder")
+        .map((file) => ({
           id: file.id!,
           name: file.name!,
           mimeType: file.mimeType!,
@@ -268,38 +281,38 @@ export async function getSubfolderContents(folderId: string): Promise<DriveFolde
           webContentLink: file.webContentLink || undefined,
           thumbnailLink: file.thumbnailLink || undefined,
         })),
-      subfolders: (subFoldersResponse.data.files || []).map(sf => ({
+      subfolders: (subFoldersResponse.data.files || []).map((sf) => ({
         id: sf.id!,
         name: sf.name!,
       })),
     };
   } catch (error) {
-    console.error('Error fetching subfolder contents:', error);
+    console.error("Error fetching subfolder contents:", error);
     throw error;
   }
 }
 
 export async function getAdministrativeMaps(): Promise<DriveFolder[]> {
-  return getMapFolderContents('administrative');
+  return getMapFolderContents("administrative");
 }
 
 export async function getGalleryFolders(): Promise<DriveFolder[]> {
   try {
     const drive = await getGoogleDriveClient();
-    const GALLERY_ROOT_FOLDER_ID = '111ShUKgBwTA1qre5JjVelfzNSddQqa23';
-    
+    const GALLERY_ROOT_FOLDER_ID = "1O1WlCjMvZ5lVcrOIGNMlBY4ZuQ-zEarg";
+
     // Fetch sub-folders (first level)
     const response = await drive.files.list({
       q: `'${GALLERY_ROOT_FOLDER_ID}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`,
-      fields: 'files(id, name)',
+      fields: "files(id, name)",
       pageSize: 100,
-      orderBy: 'name',
+      orderBy: "name",
     });
 
     const folders = response.data.files || [];
-    
+
     if (folders.length === 0) {
-      console.warn('No sub-folders found in gallery root folder');
+      console.warn("No sub-folders found in gallery root folder");
       return [];
     }
 
@@ -308,48 +321,53 @@ export async function getGalleryFolders(): Promise<DriveFolder[]> {
       folders.map(async (folder) => {
         const subFoldersResponse = await drive.files.list({
           q: `'${folder.id}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`,
-          fields: 'files(id, name)',
+          fields: "files(id, name)",
           pageSize: 100,
-          orderBy: 'name',
+          orderBy: "name",
         });
 
-        const subFolders = (subFoldersResponse.data.files || []).map(subFolder => ({
-          id: subFolder.id!,
-          name: subFolder.name!,
-        }));
+        const subFolders = (subFoldersResponse.data.files || []).map(
+          (subFolder) => ({
+            id: subFolder.id!,
+            name: subFolder.name!,
+          }),
+        );
 
         return {
           id: folder.id!,
           name: folder.name!,
           subfolders: subFolders,
         };
-      })
+      }),
     );
 
     return result;
   } catch (error) {
-    console.error('Error fetching gallery folders from Google Drive:', error);
+    console.error("Error fetching gallery folders from Google Drive:", error);
     throw error;
   }
 }
 
-export async function getGalleryImages(folderId: string): Promise<GalleryImage[]> {
+export async function getGalleryImages(
+  folderId: string,
+): Promise<GalleryImage[]> {
   if (!folderId) {
-    throw new Error('Folder ID is required');
+    throw new Error("Folder ID is required");
   }
-  
+
   try {
     const drive = await getGoogleDriveClient();
-    
+
     const response = await drive.files.list({
       q: `'${folderId}' in parents and (mimeType contains 'image/') and trashed=false`,
-      fields: 'files(id, name, thumbnailLink, webViewLink, webContentLink, description, createdTime)',
+      fields:
+        "files(id, name, thumbnailLink, webViewLink, webContentLink, description, createdTime)",
       pageSize: 100,
     });
 
     const files = response.data.files || [];
 
-    return files.map(file => ({
+    return files.map((file) => ({
       id: file.id!,
       name: file.name!,
       thumbnailLink: file.thumbnailLink || undefined,
@@ -360,19 +378,19 @@ export async function getGalleryImages(folderId: string): Promise<GalleryImage[]
       folder: folderId,
     }));
   } catch (error) {
-    console.error('Error fetching gallery images from Google Drive:', error);
+    console.error("Error fetching gallery images from Google Drive:", error);
     throw error;
   }
 }
 
 export async function deleteGalleryImages(imageIds: string[]): Promise<void> {
   if (!imageIds || imageIds.length === 0) {
-    throw new Error('Image IDs are required');
+    throw new Error("Image IDs are required");
   }
-  
+
   try {
     const drive = await getGoogleDriveClient();
-    
+
     await Promise.all(
       imageIds.map(async (fileId) => {
         await drive.files.update({
@@ -381,22 +399,25 @@ export async function deleteGalleryImages(imageIds: string[]): Promise<void> {
             trashed: true,
           },
         });
-      })
+      }),
     );
   } catch (error) {
-    console.error('Error deleting gallery images from Google Drive:', error);
+    console.error("Error deleting gallery images from Google Drive:", error);
     throw error;
   }
 }
 
-export async function renameGalleryImage(imageId: string, newName: string): Promise<void> {
+export async function renameGalleryImage(
+  imageId: string,
+  newName: string,
+): Promise<void> {
   if (!imageId || !newName) {
-    throw new Error('Image ID and new name are required');
+    throw new Error("Image ID and new name are required");
   }
-  
+
   try {
     const drive = await getGoogleDriveClient();
-    
+
     await drive.files.update({
       fileId: imageId,
       requestBody: {
@@ -404,7 +425,7 @@ export async function renameGalleryImage(imageId: string, newName: string): Prom
       },
     });
   } catch (error) {
-    console.error('Error renaming gallery image:', error);
+    console.error("Error renaming gallery image:", error);
     throw error;
   }
 }
