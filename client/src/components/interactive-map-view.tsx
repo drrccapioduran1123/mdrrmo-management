@@ -1,5 +1,5 @@
 import { useRef, useCallback, useState, useEffect } from "react";
-import { MapPinned, Move, ZoomIn, ZoomOut } from "lucide-react";
+import { MapPinned, Move, ZoomIn, ZoomOut, Hand } from "lucide-react";
 import {
   MapDrawingToolbar,
   DrawingControlsPanel,
@@ -72,6 +72,7 @@ export function InteractiveMapView({
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [selectedFeature, setSelectedFeature] = useState<string | null>(null);
+  const [handToolActive, setHandToolActive] = useState(false);
 
   // Convert lat/lng to tile coordinates
   const latLngToTile = useCallback((lat: number, lng: number, zoom: number) => {
@@ -144,7 +145,7 @@ export function InteractiveMapView({
 
   const handleMouseDown = useCallback(
     (e: React.MouseEvent) => {
-      if (e.button === 1 || (e.button === 0 && e.ctrlKey)) { // Middle click or Ctrl+Left click
+      if (handToolActive || e.button === 1 || (e.button === 0 && e.ctrlKey)) { // Hand tool or middle click or Ctrl+Left click
         e.preventDefault();
         setPanStart({ x: e.clientX, y: e.clientY });
         setIsPanning(true);
@@ -298,7 +299,7 @@ export function InteractiveMapView({
     setTempCoordinates([]);
   }, [setDrawingMode, setTempCoordinates]);
 
-  const exportAsImage = useCallback(() => {
+  const exportAsImage = useCallback(async () => {
     if (!canvasRef.current || !mapRef.current) return;
 
     const canvas = canvasRef.current;
@@ -308,32 +309,33 @@ export function InteractiveMapView({
     canvas.width = mapRef.current.clientWidth;
     canvas.height = mapRef.current.clientHeight;
 
-    const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-    gradient.addColorStop(0, "#1A1E32");
-    gradient.addColorStop(0.5, "#0E2148");
-    gradient.addColorStop(1, "#1A1E32");
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
-    ctx.lineWidth = 1;
-
-    for (let x = 0; x < canvas.width; x += 50) {
-      ctx.beginPath();
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, canvas.height);
-      ctx.stroke();
-    }
-
-    for (let y = 0; y < canvas.height; y += 50) {
-      ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(canvas.width, y);
-      ctx.stroke();
-    }
-
     const rect = mapRef.current.getBoundingClientRect();
+    const tiles = getVisibleTiles();
 
+    // Load and draw basemap tiles
+    const tilePromises = tiles.map(
+      (tile) =>
+        new Promise<void>((resolve) => {
+          const img = new Image();
+          img.crossOrigin = "anonymous";
+          img.onload = () => {
+            ctx.drawImage(img, tile.left, tile.top, 256, 256);
+            resolve();
+          };
+          img.onerror = () => {
+            // If tile fails to load, fill with light blue background
+            ctx.fillStyle = "#7fbfff";
+            ctx.fillRect(tile.left, tile.top, 256, 256);
+            resolve();
+          };
+          img.src = tile.url;
+        })
+    );
+
+    // Wait for all tiles to load
+    await Promise.all(tilePromises);
+
+    // Draw features on top of basemap
     mapFeatures.forEach((feature) => {
       if (feature.type === "marker" && feature.coordinates.length > 0) {
         const coord = feature.coordinates[0];
@@ -481,7 +483,7 @@ export function InteractiveMapView({
 
       <div
         ref={mapRef}
-        className="w-full h-full cursor-crosshair relative overflow-hidden"
+        className="w-full h-full relative overflow-hidden"
         onClick={handleMapClick}
         onMouseMove={handleMouseMove}
         onMouseDown={handleMouseDown}
@@ -490,6 +492,7 @@ export function InteractiveMapView({
         onWheel={handleWheel}
         style={{
           background: "#7fbfff",
+          cursor: handToolActive ? "grab" : "crosshair",
         }}
         data-testid="interactive-map-canvas"
       >
@@ -514,6 +517,17 @@ export function InteractiveMapView({
         ))}
 
         <div className="absolute top-4 left-4 z-10 flex gap-2">
+          <button
+            className={`p-2 rounded-lg text-white transition-colors ${
+              handToolActive
+                ? "bg-green-600 hover:bg-green-700"
+                : "bg-blue-600 hover:bg-blue-700"
+            }`}
+            onClick={() => setHandToolActive(!handToolActive)}
+            title="Hand Tool - Drag to Pan"
+          >
+            <Hand size={20} />
+          </button>
           <button
             className="p-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors"
             onClick={zoomIn}
