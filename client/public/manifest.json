@@ -1,0 +1,110 @@
+{
+  "name": "MDRRMO Pio Duran - File Inventory and Management System",
+  "short_name": "MDRRMO Pio Duran",
+  "description": "Municipal Disaster Risk Reduction and Management Office - File Inventory and Management System for Pio Duran, Albay. Track emergency equipment, manage schedules, contacts, documents, and hazard maps.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0E2148",
+  "theme_color": "#00A38D",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "categories": [
+    "government",
+    "productivity"
+  ],
+  "screenshots": [
+    {
+      "src": "/favicon.png",
+      "type": "image/png",
+      "sizes": "540x720",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "/favicon.png",
+      "type": "image/png",
+      "sizes": "1280x720",
+      "form_factor": "wide"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "View the main dashboard",
+      "url": "/dashboard",
+      "icons": [
+        {
+          "src": "/favicon.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Maps",
+      "short_name": "Maps",
+      "description": "View hazard maps and assets",
+      "url": "/maps",
+      "icons": [
+        {
+          "src": "/favicon.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Documents",
+      "short_name": "Documents",
+      "description": "Manage documents",
+      "url": "/documents",
+      "icons": [
+        {
+          "src": "/favicon.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    }
+  ],
+  "share_target": {
+    "action": "/share",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url",
+      "files": [
+        {
+          "name": "files",
+          "accept": [
+            "image/*",
+            "application/pdf",
+            "text/*"
+          ]
+        }
+      ]
+    }
+  }
+}

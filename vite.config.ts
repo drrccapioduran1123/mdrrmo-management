@@ -30,6 +30,20 @@ export default defineConfig({
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
+    rollupOptions: {
+      input: {
+        main: path.resolve(import.meta.dirname, "client/index.html"),
+        sw: path.resolve(import.meta.dirname, "client/src/service-worker.ts"),
+      },
+      output: {
+        entryFileNames: (chunkInfo) => {
+          if (chunkInfo.name === "sw") {
+            return "service-worker.js";
+          }
+          return "assets/[name]-[hash].js";
+        },
+      },
+    },
   },
   server: {
     fs: {

@@ -3,6 +3,7 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { usePWA } from "@/hooks/use-pwa";
 import Dashboard from "@/pages/dashboard";
 import Inventory from "@/pages/inventory";
 import CalendarPage from "@/pages/calendar";
@@ -28,6 +29,9 @@ function Router() {
 }
 
 function App() {
+  // Initialize PWA (service worker registration, updates)
+  usePWA();
+
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
