@@ -10,6 +10,8 @@ import {
   Scan,
   SquarePen,
   MousePointer,
+  ZoomIn,
+  ZoomOut,
 } from "lucide-react";
 
 export type MapFeature = {
@@ -43,10 +45,16 @@ export function MapDrawingToolbar({
   drawingMode,
   setDrawingMode,
   onExport,
+  onZoomIn,
+  onZoomOut,
+  onResetView,
 }: {
   drawingMode: DrawingMode;
   setDrawingMode: (mode: DrawingMode) => void;
   onExport: () => void;
+  onZoomIn?: () => void;
+  onZoomOut?: () => void;
+  onResetView?: () => void;
 }) {
   return (
     <div className="absolute top-4 right-4 z-10 flex flex-col gap-2">
@@ -153,6 +161,11 @@ export function MapDrawingToolbar({
       >
         <Download className="w-5 h-5" />
       </button>
+      <div className="mt-2 flex gap-2">
+        <button onClick={onZoomIn} className="p-2 rounded bg-gray-800 text-white"> <ZoomIn className="w-4 h-4" /> </button>
+        <button onClick={onZoomOut} className="p-2 rounded bg-gray-800 text-white"> <ZoomOut className="w-4 h-4" /> </button>
+        <button onClick={onResetView} className="p-2 rounded bg-gray-800 text-white"> <X className="w-4 h-4" /> </button>
+      </div>
     </div>
   );
 }

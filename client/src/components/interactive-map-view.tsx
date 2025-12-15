@@ -172,7 +172,11 @@ export function InteractiveMapView({
           }
         });
 
-        setSelectedFeature(closestFeature ? closestFeature.id : null);
+        if (closestFeature) {
+          setSelectedFeature((closestFeature as any).id);
+        } else {
+          setSelectedFeature(null);
+        }
       }
     },
     [drawingMode, pixelToLatLng, latLngToPixel, mapFeatures, isPanning, zoomLevel]

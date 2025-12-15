@@ -550,6 +550,7 @@ export async function getPanoramaImages(): Promise<{ folders: DriveFolder[]; all
     const rootImages = (rootImagesResponse.data.files || []).map((file) => ({
       id: file.id!,
       name: file.name!,
+      mimeType: file.mimeType || "image/*",
       thumbnailLink: file.thumbnailLink || undefined,
       webViewLink: file.webViewLink || undefined,
       webContentLink: file.webContentLink || undefined,
@@ -572,6 +573,7 @@ export async function getPanoramaImages(): Promise<{ folders: DriveFolder[]; all
         const folderImages = (imagesResponse.data.files || []).map((file) => ({
           id: file.id!,
           name: file.name!,
+          mimeType: file.mimeType || "image/*",
           thumbnailLink: file.thumbnailLink || undefined,
           webViewLink: file.webViewLink || undefined,
           webContentLink: file.webContentLink || undefined,

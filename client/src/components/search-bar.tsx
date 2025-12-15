@@ -4,12 +4,13 @@ interface SearchBarProps {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
+  className?: string;
 }
 
-export function SearchBar({ value, onChange, placeholder = "Search..." }: SearchBarProps) {
+export function SearchBar({ value, onChange, placeholder = "Search...", className = "" }: SearchBarProps) {
   return (
     <div
-      className="flex items-center gap-3 px-5 py-3 rounded-full transition-all duration-300 min-w-[280px] focus-within:scale-[1.02]"
+      className={`flex items-center gap-3 px-5 py-3 rounded-full transition-all duration-300 min-w-[280px] focus-within:scale-[1.02] ${className}`}
       style={{
         background: "rgba(255, 255, 255, 0.1)",
         border: "2px solid rgba(121, 101, 193, 0.4)",

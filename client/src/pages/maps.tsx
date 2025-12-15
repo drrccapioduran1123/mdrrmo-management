@@ -216,7 +216,7 @@ export default function Maps() {
     }>;
   }>({
     queryKey: ["/api/panorama"],
-    enabled: activeLayer?.type === "panorama",
+    enabled: (activeLayer as any)?.type === "panorama",
     staleTime: 5 * 60 * 1000,
   });
 
@@ -263,7 +263,7 @@ export default function Maps() {
             await import("@photo-sphere-viewer/core/index.css");
 
             viewerInstanceRef.current = new Viewer({
-              container: panoramaViewerRef.current,
+              container: panoramaViewerRef.current!,
               panorama: panoramaUrl,
               caption: selectedPanorama.name,
               loadingTxt: "Loading 360° panorama...",
@@ -281,7 +281,7 @@ export default function Maps() {
             await import("@photo-sphere-viewer/core/index.css");
 
             viewerInstanceRef.current = new CylindricalViewer({
-              container: panoramaViewerRef.current,
+              container: panoramaViewerRef.current!,
               panorama: panoramaUrl,
               caption: selectedPanorama.name,
               loadingTxt: "Loading cylindrical panorama...",
@@ -301,7 +301,7 @@ export default function Maps() {
             await import("@photo-sphere-viewer/core/index.css");
 
             viewerInstanceRef.current = new HorizontalViewer({
-              container: panoramaViewerRef.current,
+              container: panoramaViewerRef.current!,
               panorama: panoramaUrl,
               caption: selectedPanorama.name,
               loadingTxt: "Loading horizontal panorama...",
@@ -309,7 +309,6 @@ export default function Maps() {
               navbar: ["zoom", "fullscreen", "caption"],
               touchmoveTwoFingers: true,
               mousewheelCtrlKey: false,
-              latRange: [-Math.PI / 6, Math.PI / 6], // Limit vertical movement
             });
             setPanoramaViewerReady(true);
             break;
@@ -320,7 +319,7 @@ export default function Maps() {
             await import("@photo-sphere-viewer/core/index.css");
 
             viewerInstanceRef.current = new VerticalViewer({
-              container: panoramaViewerRef.current,
+              container: panoramaViewerRef.current!,
               panorama: panoramaUrl,
               caption: selectedPanorama.name,
               loadingTxt: "Loading vertical panorama...",
@@ -328,7 +327,6 @@ export default function Maps() {
               navbar: ["zoom", "fullscreen", "caption"],
               touchmoveTwoFingers: true,
               mousewheelCtrlKey: false,
-              longRange: [-Math.PI / 6, Math.PI / 6], // Limit horizontal movement
             });
             setPanoramaViewerReady(true);
             break;
@@ -743,7 +741,7 @@ export default function Maps() {
                 title={selectedGoogleMap.name}
                 data-testid="google-map-iframe"
               />
-            ) : activeLayer?.type === "panorama" ? (
+            ) : (activeLayer as any)?.type === "panorama" ? (
               <div className="w-full h-full flex flex-col bg-gray-900">
                 {selectedPanorama ? (
                   <div className="flex-1 flex flex-col">
@@ -1062,7 +1060,7 @@ export default function Maps() {
                   <p className="text-sm" style={{ color: "rgba(227, 208, 149, 0.7)" }}>
                     {activeLayer?.type === "google-open"
                       ? "Select a map from the sidebar to view the interactive Google Map."
-                      : activeLayer?.type === "panorama"
+                      : (activeLayer as any)?.type === "panorama"
                         ? "Loading panoramic images from Google Drive folder..."
                         : "No files found in this map layer. Files from Google Drive will appear here when available."}
                   </p>
@@ -1079,7 +1077,7 @@ export default function Maps() {
               <span className="hidden sm:inline">Layer: {activeLayer?.name || "None"}</span>
             </div>
             <div className="flex items-center gap-4 flex-wrap">
-              <span>Source: {activeLayer?.type === "google-open" ? "Google Maps" : activeLayer?.type === "panorama" ? "Google Drive (Panorama)" : activeLayer?.type === "interactive" ? "MDRRMO" : "Google Drive"}</span>
+              <span>Source: {(activeLayer as any)?.type === "google-open" ? "Google Maps" : (activeLayer as any)?.type === "panorama" ? "Google Drive (Panorama)" : (activeLayer as any)?.type === "interactive" ? "MDRRMO" : "Google Drive"}</span>
               <span className="hidden sm:inline">|</span>
               <span className="hidden sm:inline">MDRRMO Pio Duran</span>
             </div>

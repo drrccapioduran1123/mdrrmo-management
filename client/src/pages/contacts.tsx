@@ -128,12 +128,12 @@ export default function Contacts() {
 
   const stats: ContactStats = {
     totalContacts: contacts.length,
-    agencies: [...new Set(contacts.map(c => c.agency))].length,
-    phoneNumbers: contacts.filter(c => c.phoneNumber).length,
-    emailAddresses: contacts.filter(c => c.email).length,
+    agencies: Array.from(new Set(contacts.map((c) => c.agency))).length,
+    phoneNumbers: contacts.filter((c) => c.phoneNumber).length,
+    emailAddresses: contacts.filter((c) => c.email).length,
   };
 
-  const agencies = [...new Set(contacts.map(c => c.agency))];
+  const agencies = Array.from(new Set(contacts.map((c) => c.agency)));
 
   const filteredContacts = contacts.filter(contact => {
     const matchesSearch = 

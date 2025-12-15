@@ -86,6 +86,9 @@ export interface GalleryImage {
   description?: string;
   createdTime?: string;
   folder?: string;
+  size?: string;
+  modifiedTime?: string;
+  mimeType?: string;
 }
 
 export interface HazardZone {
@@ -112,7 +115,9 @@ export interface MapAsset {
 export interface MapLayer {
   id: string;
   name: string;
-  type: "interactive" | "administrative" | "topographic" | "land-use" | "hazards" | "other" | "google-open";
+  // 'panorama' maps are stored in Google Drive and used by the panorama viewer
+  // include it because UI code references this type in several places
+  type: "interactive" | "administrative" | "topographic" | "land-use" | "hazards" | "other" | "google-open" | "panorama";
   active: boolean;
   opacity?: number;
   folderId?: string;

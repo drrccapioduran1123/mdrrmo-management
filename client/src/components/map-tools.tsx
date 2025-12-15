@@ -1,29 +1,40 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { X, Undo, Redo, MousePointer, Ruler, Square, Download, Printer, ZoomIn, ZoomOut, Circle, MapPin, SquareDot } from 'lucide-react';
 
-const App = () => {
-  const [drawingMode, setDrawingMode] = useState(null);
-  const [featureTitle, setFeatureTitle] = useState('');
-  const [featureDescription, setFeatureDescription] = useState('');
-  const [selectedColor, setSelectedColor] = useState('#00A38D');
-  const [selectedFillColor, setSelectedFillColor] = useState('rgba(0, 163, 141, 0.3)');
-  const [selectedWeight, setSelectedWeight] = useState(3);
-  const [tempCoordinates, setTempCoordinates] = useState([]);
-  const [features, setFeatures] = useState([]);
-  const [history, setHistory] = useState([]);
-  const [historyIndex, setHistoryIndex] = useState(-1);
-  const [selectedFeatureId, setSelectedFeatureId] = useState(null);
-  const [toolMode, setToolMode] = useState('select'); // 'select', 'measure-distance', 'measure-area'
-  const [measurements, setMeasurements] = useState([]);
-  const [zoomLevel, setZoomLevel] = useState(1);
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-  const [mapPosition, setMapPosition] = useState({ x: 0, y: 0 });
+type Feature = {
+  id: string | number;
+  type: 'marker' | 'polygon' | 'line';
+  coordinates: any;
+  title?: string;
+  description?: string;
+  color?: string;
+  fillColor?: string;
+  weight?: number;
+};
 
-  const mapRef = useRef(null);
+const App = () => {
+  const [drawingMode, setDrawingMode] = useState<'marker' | 'polygon' | 'line' | null>(null);
+  const [featureTitle, setFeatureTitle] = useState<string>('');
+  const [featureDescription, setFeatureDescription] = useState<string>('');
+  const [selectedColor, setSelectedColor] = useState<string>('#00A38D');
+  const [selectedFillColor, setSelectedFillColor] = useState<string>('rgba(0, 163, 141, 0.3)');
+  const [selectedWeight, setSelectedWeight] = useState<number>(3);
+  const [tempCoordinates, setTempCoordinates] = useState<any[]>([]);
+  const [features, setFeatures] = useState<Feature[]>([]);
+  const [history, setHistory] = useState<Feature[][]>([]);
+  const [historyIndex, setHistoryIndex] = useState<number>(-1);
+  const [selectedFeatureId, setSelectedFeatureId] = useState<string | number | null>(null);
+  const [toolMode, setToolMode] = useState<'select' | 'measure-distance' | 'measure-area'>('select');
+  const [measurements, setMeasurements] = useState<number[][]>([]);
+  const [zoomLevel, setZoomLevel] = useState<number>(1);
+  const [isDragging, setIsDragging] = useState<boolean>(false);
+  const [dragStart, setDragStart] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [mapPosition, setMapPosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+
+  const mapRef = useRef<HTMLDivElement | null>(null);
 
   // Save state to history
-  const saveToHistory = (newFeatures) => {
+  const saveToHistory = (newFeatures: Feature[]) => {
     const newHistory = history.slice(0, historyIndex + 1);
     newHistory.push([...newFeatures]);
     setHistory(newHistory);
@@ -59,7 +70,7 @@ const App = () => {
   // Finish drawing
   const finishDrawing = () => {
     if (drawingMode === 'polygon' && tempCoordinates.length >= 3) {
-      const newFeature = {
+      const newFeature: Feature = {
         id: Date.now(),
         type: 'polygon',
         coordinates: [...tempCoordinates],
@@ -73,7 +84,7 @@ const App = () => {
       saveToHistory(newFeatures);
       cancelDrawing();
     } else if (drawingMode === 'line' && tempCoordinates.length >= 2) {
-      const newFeature = {
+      const newFeature: Feature = {
         id: Date.now(),
         type: 'line',
         coordinates: [...tempCoordinates],
@@ -87,7 +98,7 @@ const App = () => {
       saveToHistory(newFeatures);
       cancelDrawing();
     } else if (drawingMode === 'marker') {
-      const newFeature = {
+      const newFeature: Feature = {
         id: Date.now(),
         type: 'marker',
         coordinates: tempCoordinates[0] || [0, 0],
@@ -103,7 +114,7 @@ const App = () => {
   };
 
   // Add point for drawing
-  const addPoint = (coords) => {
+  const addPoint = (coords: number[]) => {
     if (drawingMode === 'polygon' || drawingMode === 'line') {
       setTempCoordinates([...tempCoordinates, coords]);
     } else if (drawingMode === 'marker') {
@@ -113,7 +124,7 @@ const App = () => {
   };
 
   // Handle map click
-  const handleMapClick = (e) => {
+  const handleMapClick = (e: MouseEvent) => {
     if (!mapRef.current) return;
 
     const rect = mapRef.current.getBoundingClientRect();
@@ -125,7 +136,7 @@ const App = () => {
       addPoint(coords);
     } else if (toolMode === 'select') {
       // Check if clicked on a feature
-      const clickedFeature = features.find(feature => {
+      const clickedFeature = features.find((feature) => {
         if (feature.type === 'marker') {
           const distance = Math.sqrt(
             Math.pow(feature.coordinates[0] - x, 2) + 
@@ -134,10 +145,10 @@ const App = () => {
           return distance <= 15;
         } else if (feature.type === 'polygon') {
           // Simple point-in-polygon check (simplified for demo)
-          const minX = Math.min(...feature.coordinates.map(c => c[0]));
-          const maxX = Math.max(...feature.coordinates.map(c => c[0]));
-          const minY = Math.min(...feature.coordinates.map(c => c[1]));
-          const maxY = Math.max(...feature.coordinates.map(c => c[1]));
+              const minX = Math.min(...feature.coordinates.map((c: any) => c[0]));
+              const maxX = Math.max(...feature.coordinates.map((c: any) => c[0]));
+              const minY = Math.min(...feature.coordinates.map((c: any) => c[1]));
+              const maxY = Math.max(...feature.coordinates.map((c: any) => c[1]));
           return x >= minX && x <= maxX && y >= minY && y <= maxY;
         } else if (feature.type === 'line') {
           // Check if near line (simplified)
@@ -161,7 +172,7 @@ const App = () => {
         setSelectedFeatureId(null);
       }
     } else if (toolMode === 'measure-distance' || toolMode === 'measure-area') {
-      const newMeasurements = [...measurements, coords];
+      const newMeasurements = [...measurements, coords as number[]];
       setMeasurements(newMeasurements);
 
       if (toolMode === 'measure-distance' && newMeasurements.length === 2) {
@@ -173,12 +184,12 @@ const App = () => {
   };
 
   // Calculate distance between two points
-  const calculateDistance = (p1, p2) => {
+  const calculateDistance = (p1: number[], p2: number[]) => {
     return Math.sqrt(Math.pow(p2[0] - p1[0], 2) + Math.pow(p2[1] - p1[1], 2));
   };
 
   // Calculate area of polygon (shoelace formula)
-  const calculateArea = (points) => {
+  const calculateArea = (points: number[][]) => {
     if (points.length < 3) return 0;
     let area = 0;
     for (let i = 0; i < points.length; i++) {
@@ -198,10 +209,10 @@ const App = () => {
           if (feature.type === 'marker') {
             return `<circle cx="${feature.coordinates[0]}" cy="${feature.coordinates[1]}" r="8" fill="${feature.color}" stroke="white" stroke-width="2"/>`;
           } else if (feature.type === 'polygon') {
-            const points = feature.coordinates.map(c => `${c[0]},${c[1]}`).join(' ');
+            const points = feature.coordinates.map((c: any) => `${c[0]},${c[1]}`).join(' ');
             return `<polygon points="${points}" fill="${feature.fillColor}" stroke="${feature.color}" stroke-width="2"/>`;
           } else if (feature.type === 'line') {
-            const points = feature.coordinates.map(c => `${c[0]},${c[1]}`).join(' ');
+            const points = feature.coordinates.map((c: any) => `${c[0]},${c[1]}`).join(' ');
             return `<polyline points="${points}" fill="none" stroke="${feature.color}" stroke-width="${feature.weight}"/>`;
           }
           return '';
@@ -234,7 +245,7 @@ const App = () => {
   };
 
   // Handle mouse down for panning
-  const handleMouseDown = (e) => {
+  const handleMouseDown = (e: MouseEvent) => {
     if (drawingMode || toolMode !== 'select') return;
     setIsDragging(true);
     setDragStart({
@@ -244,7 +255,7 @@ const App = () => {
   };
 
   // Handle mouse move for panning
-  const handleMouseMove = (e) => {
+  const handleMouseMove = (e: MouseEvent) => {
     if (!isDragging) return;
     setMapPosition({
       x: e.clientX - dragStart.x,
@@ -600,8 +611,8 @@ const App = () => {
       <div
         ref={mapRef}
         className="absolute inset-0 cursor-crosshair"
-        onClick={handleMapClick}
-        onMouseDown={handleMouseDown}
+        onClick={handleMapClick as unknown as React.MouseEventHandler<HTMLDivElement>}
+        onMouseDown={handleMouseDown as unknown as React.MouseEventHandler<HTMLDivElement>}
         style={{
           transform: `translate(${mapPosition.x}px, ${mapPosition.y}px) scale(${zoomLevel})`,
           transformOrigin: '0 0',
@@ -640,7 +651,7 @@ const App = () => {
               {feature.type === 'polygon' && (
                 <svg className="absolute inset-0 w-full h-full pointer-events-none">
                   <polygon
-                    points={feature.coordinates.map(c => `${c[0]},${c[1]}`).join(' ')}
+                    points={feature.coordinates.map((c: any) => `${c[0]},${c[1]}`).join(' ')}
                     fill={feature.fillColor}
                     stroke={feature.color}
                     strokeWidth="2"
@@ -651,7 +662,7 @@ const App = () => {
               {feature.type === 'line' && (
                 <svg className="absolute inset-0 w-full h-full pointer-events-none">
                   <polyline
-                    points={feature.coordinates.map(c => `${c[0]},${c[1]}`).join(' ')}
+                    points={feature.coordinates.map((c: any) => `${c[0]},${c[1]}`).join(' ')}
                     fill="none"
                     stroke={feature.color}
                     strokeWidth={feature.weight}

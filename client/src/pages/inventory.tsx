@@ -180,7 +180,7 @@ export default function Inventory() {
     outOfStock: items.filter((i) => i.itemStatus === "Out of Stock").length,
   };
 
-  const categories = [...new Set(items.map((i) => i.itemCategory))];
+  const categories = Array.from(new Set(items.map((i) => i.itemCategory)));
 
   const filteredItems = items.filter((item) => {
     const matchesSearch =

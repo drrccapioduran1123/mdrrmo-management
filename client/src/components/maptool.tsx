@@ -18,27 +18,27 @@ import {
 } from "lucide-react";
 
 const App = () => {
-  const [drawingMode, setDrawingMode] = useState(null);
-  const [features, setFeatures] = useState([]);
-  const [history, setHistory] = useState([]);
-  const [historyIndex, setHistoryIndex] = useState(-1);
-  const [selectedFeature, setSelectedFeature] = useState(null);
-  const [tempCoordinates, setTempCoordinates] = useState([]);
-  const [featureTitle, setFeatureTitle] = useState("");
-  const [featureDescription, setFeatureDescription] = useState("");
-  const [selectedColor, setSelectedColor] = useState("#ff0000");
-  const [selectedFillColor, setSelectedFillColor] = useState("#ff000040");
-  const [selectedWeight, setSelectedWeight] = useState(3);
-  const [zoomLevel, setZoomLevel] = useState(12);
-  const [measurements, setMeasurements] = useState({
+  const [drawingMode, setDrawingMode] = useState<"marker" | "polygon" | "line" | "select" | null>(null);
+  const [features, setFeatures] = useState<any[]>([]);
+  const [history, setHistory] = useState<any[][]>([]);
+  const [historyIndex, setHistoryIndex] = useState<number>(-1);
+  const [selectedFeature, setSelectedFeature] = useState<any | null>(null);
+  const [tempCoordinates, setTempCoordinates] = useState<any[]>([]);
+  const [featureTitle, setFeatureTitle] = useState<string>("");
+  const [featureDescription, setFeatureDescription] = useState<string>("");
+  const [selectedColor, setSelectedColor] = useState<string>("#ff0000");
+  const [selectedFillColor, setSelectedFillColor] = useState<string>("#ff000040");
+  const [selectedWeight, setSelectedWeight] = useState<number>(3);
+  const [zoomLevel, setZoomLevel] = useState<number>(12);
+  const [measurements, setMeasurements] = useState<{ distance: number | null; area: number | null }>({
     distance: null,
     area: null,
   });
-  const [isMeasuring, setIsMeasuring] = useState(false);
-  const [measurePoints, setMeasurePoints] = useState([]);
+  const [isMeasuring, setIsMeasuring] = useState<boolean>(false);
+  const [measurePoints, setMeasurePoints] = useState<any[]>([]);
   const [showExportPanel, setShowExportPanel] = useState(false);
-  const mapRef = useRef(null);
-  const printRef = useRef(null);
+  const mapRef = useRef<HTMLDivElement | null>(null);
+  const printRef = useRef<HTMLDivElement | null>(null);
 
   // Initialize with sample features
   useEffect(() => {
@@ -70,7 +70,7 @@ const App = () => {
     addToHistory(initialFeatures);
   }, []);
 
-  const addToHistory = (newFeatures) => {
+  const addToHistory = (newFeatures: any[]) => {
     const newHistory = history.slice(0, historyIndex + 1);
     newHistory.push([...newFeatures]);
     setHistory(newHistory);
@@ -95,7 +95,7 @@ const App = () => {
     }
   };
 
-  const startDrawing = (mode) => {
+  const startDrawing = (mode: "marker" | "polygon" | "line" | "select" | null) => {
     setDrawingMode(mode);
     setTempCoordinates([]);
     setFeatureTitle("");
@@ -154,7 +154,7 @@ const App = () => {
     setTempCoordinates([]);
   };
 
-  const deleteFeature = (id) => {
+  const deleteFeature = (id: string | number) => {
     const updatedFeatures = features.filter((feature) => feature.id !== id);
     setFeatures(updatedFeatures);
     addToHistory(updatedFeatures);
@@ -167,7 +167,7 @@ const App = () => {
     setMeasurements({ distance: null, area: null });
   };
 
-  const calculateDistance = (coords) => {
+  const calculateDistance = (coords: number[][]) => {
     if (coords.length < 2) return 0;
     // Simple Euclidean distance calculation (in real app, use Haversine formula)
     let totalDistance = 0;
@@ -179,7 +179,7 @@ const App = () => {
     return totalDistance;
   };
 
-  const calculateArea = (coords) => {
+  const calculateArea = (coords: number[][]) => {
     if (coords.length < 3) return 0;
     // Shoelace formula for polygon area
     let area = 0;
@@ -190,7 +190,7 @@ const App = () => {
     return area * 123456789; // Approx conversion to square meters
   };
 
-  const handleMapClick = (e) => {
+  const handleMapClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!mapRef.current) return;
 
     const rect = mapRef.current.getBoundingClientRect();
@@ -232,7 +232,7 @@ const App = () => {
     setZoomLevel((prev) => Math.max(prev - 1, 1));
   };
 
-  const exportMap = (format) => {
+  const exportMap = (format: string) => {
     if (format === "json") {
       const dataStr = JSON.stringify(features, null, 2);
       const dataUri =
@@ -261,7 +261,7 @@ const App = () => {
   return (
     <div className="h-screen bg-gray-900 relative overflow-hidden">
       {/* Print Styles */}
-      <style jsx>{`
+      <style>{`
         @media print {
           .no-print {
             display: none !important;
@@ -312,7 +312,7 @@ const App = () => {
                 <polygon
                   points={feature.coordinates
                     .map(
-                      (coord) =>
+                      (coord: any) =>
                         `${50 + (coord[1] + 0.09) * 10000},${50 + (coord[0] - 51.505) * 10000}`,
                     )
                     .join(" ")}
@@ -333,7 +333,7 @@ const App = () => {
                 <polyline
                   points={feature.coordinates
                     .map(
-                      (coord) =>
+                      (coord: any) =>
                         `${50 + (coord[1] + 0.09) * 10000},${50 + (coord[0] - 51.505) * 10000}`,
                     )
                     .join(" ")}
