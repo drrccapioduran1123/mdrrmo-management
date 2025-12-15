@@ -1015,25 +1015,7 @@ export default function Maps() {
                         </div>
                       )}
 
-                      {layer.type === "panorama" && isActive && (
-                        <div className="mt-2 ml-4 space-y-1">
-                          <div 
-                            className="px-3 py-2 rounded-lg text-sm"
-                            style={{ 
-                              background: "rgba(0, 163, 141, 0.2)",
-                              color: "rgba(227, 208, 149, 0.9)"
-                            }}
-                          >
-                            <div className="flex items-center gap-2 mb-1">
-                              <Eye className="w-4 h-4" style={{ color: "#00A38D" }} />
-                              <span className="font-medium">Panorama Viewer</span>
-                            </div>
-                            <p className="text-xs opacity-80">
-                              Showing 360° panoramic images from Google Drive folder ID: 1tsbcsTEfg5RLHLJLYXR41avy9SrajsqM
-                            </p>
-                          </div>
-                        </div>
-                      )}
+
 
                       {layer.type === "google-open" && isActive && (
                         <div className="mt-2 ml-4 space-y-1">
@@ -1190,7 +1172,7 @@ export default function Maps() {
                 placeholder="Search maps, places, documents..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-transparent py-3 pl-12 pr-4 text-sm outline-none"
+                className="w-full bg-transparent py-1 pl-12 pr-4 text-sm outline-none"
                 style={{ color: "#E3D095" }}
                 data-testid="input-search"
               />
@@ -1258,34 +1240,7 @@ export default function Maps() {
                 </button>
               </>
             )}
-            <button
-              onClick={handlePrint}
-              className="p-3 rounded-full transition-all hover-elevate"
-              style={{
-                background: "rgba(14, 33, 72, 0.9)",
-                backdropFilter: "blur(15px)",
-                border: "1px solid rgba(121, 101, 193, 0.4)",
-                color: "#E3D095",
-              }}
-              title="Print Map"
-              data-testid="button-print"
-            >
-              <Printer className="w-5 h-5" />
-            </button>
-            <button
-              onClick={handleLocateMe}
-              className="p-3 rounded-full transition-all hover-elevate"
-              style={{
-                background: "rgba(14, 33, 72, 0.9)",
-                backdropFilter: "blur(15px)",
-                border: "1px solid rgba(121, 101, 193, 0.4)",
-                color: "#E3D095",
-              }}
-              title="My Location"
-              data-testid="button-locate"
-            >
-              <Crosshair className="w-5 h-5" />
-            </button>
+           
           </div>
 
           {/* Drawing Controls */}
@@ -1533,17 +1488,7 @@ export default function Maps() {
                 ) : (
                   <div className="flex-1 overflow-auto p-6">
                     <div className="max-w-6xl mx-auto">
-                      <div className="mb-6">
-                        <h2 className="text-2xl font-bold text-yellow-400 mb-2">
-                          Panorama Images
-                        </h2>
-                        <p className="text-gray-300">
-                          360° panoramic views from Google Drive folder
-                        </p>
-                        <p className="text-gray-500 text-sm mt-1">
-                          Folder ID: 1tsbcsTEfg5RLHLJLYXR41avy9SrajsqM • {panoramaImages.length} images found
-                        </p>
-                      </div>
+
 
                       {panoramaData?.folders && panoramaData.folders.length > 0 && (
                         <div className="mb-6">

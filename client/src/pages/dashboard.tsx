@@ -59,16 +59,7 @@ const modules: DashboardModule[] = [
     color: "#FFB3BA",
     route: "/maps",
   },
-  {
-    id: "panorama",
-    title: "Panorama Map",
-    description:
-      "Explore 360-degree panoramic images and immersive views of locations for virtual site assessment.",
-    icon: "globe",
-    color: "#87CEEB",
-    route: "/panorama",
-  },
-];
+ ];
 
 export default function Dashboard() {
   return (
