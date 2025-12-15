@@ -10,7 +10,6 @@ import Contacts from "@/pages/contacts";
 import Documents from "@/pages/documents";
 import Gallery from "@/pages/gallery";
 import Maps from "@/pages/maps";
-import Panorama from "@/pages/panorama";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -23,7 +22,6 @@ function Router() {
       <Route path="/documents" component={Documents} />
       <Route path="/gallery" component={Gallery} />
       <Route path="/maps" component={Maps} />
-      <Route path="/panorama" component={Panorama} />
       <Route component={NotFound} />
     </Switch>
   );
