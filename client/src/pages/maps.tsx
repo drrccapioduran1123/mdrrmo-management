@@ -302,33 +302,89 @@ export default function Maps() {
 
   // Fetch panorama images when panorama layer is active
   const { data: panoramaData, isLoading: panoramaLoading } = useQuery<{
-    files: DriveFile[];
+    folders: DriveFolder[];
+    allImages: Array<{
+      id: string;
+      name: string;
+      thumbnailLink?: string;
+      webViewLink?: string;
+      webContentLink?: string;
+      folder: string;
+    }>;
   }>({
-    queryKey: ["panorama-folder", "1tsbcsTEfg5RLHLJLYXR41avy9SrajsqM"],
-    queryFn: async () => {
-      const response = await fetch(
-        `/api/maps/drive-folder/1tsbcsTEfg5RLHLJLYXR41avy9SrajsqM`
-      );
-      if (!response.ok) throw new Error("Failed to fetch panorama data");
-      return response.json();
-    },
+    queryKey: ["/api/panorama"],
     enabled: activeLayer?.type === "panorama",
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    staleTime: 5 * 60 * 1000,
   });
 
+  // State for panorama folders and selected folder
+  const [selectedPanoramaFolder, setSelectedPanoramaFolder] = useState<string | null>(null);
+  const [panoramaViewerReady, setPanoramaViewerReady] = useState(false);
+  const panoramaViewerRef = useRef<HTMLDivElement>(null);
+  const viewerInstanceRef = useRef<any>(null);
+
   useEffect(() => {
-    if (panoramaData?.files) {
-      // Filter for image files that are likely panoramas
-      const images = panoramaData.files.filter(file => 
-        file.mimeType.includes("image") && 
-        (file.name.toLowerCase().includes("pano") || 
-         file.name.toLowerCase().includes("360") ||
-         file.name.toLowerCase().includes("panorama") ||
-         file.name.toLowerCase().includes("equirectangular"))
-      );
-      setPanoramaImages(images);
+    if (panoramaData?.allImages) {
+      // Load ALL images from the panorama folder with folder info for filtering
+      const images = panoramaData.allImages.map(img => ({
+        id: img.id,
+        name: img.name,
+        mimeType: "image/jpeg",
+        thumbnailLink: img.thumbnailLink,
+        webViewLink: img.webViewLink,
+        webContentLink: img.webContentLink,
+        folder: img.folder,
+      }));
+      setPanoramaImages(images as DriveFile[]);
     }
   }, [panoramaData]);
+
+  // Initialize Photo Sphere Viewer when a panorama is selected
+  useEffect(() => {
+    if (!selectedPanorama || !panoramaViewerRef.current) return;
+
+    const initViewer = async () => {
+      try {
+        const { Viewer } = await import("@photo-sphere-viewer/core");
+        await import("@photo-sphere-viewer/core/index.css");
+
+        // Destroy previous instance if exists
+        if (viewerInstanceRef.current) {
+          viewerInstanceRef.current.destroy();
+          viewerInstanceRef.current = null;
+        }
+
+        // Get the panorama image URL - use the API endpoint to get the actual image
+        const panoramaUrl = `/api/panorama/image/${selectedPanorama.id}`;
+
+        viewerInstanceRef.current = new Viewer({
+          container: panoramaViewerRef.current,
+          panorama: panoramaUrl,
+          caption: selectedPanorama.name,
+          loadingTxt: "Loading panorama...",
+          defaultZoomLvl: 50,
+          navbar: ["zoom", "fullscreen", "caption"],
+          touchmoveTwoFingers: true,
+          mousewheelCtrlKey: false,
+        });
+
+        setPanoramaViewerReady(true);
+      } catch (error) {
+        console.error("Failed to initialize panorama viewer:", error);
+        setPanoramaViewerReady(false);
+      }
+    };
+
+    initViewer();
+
+    return () => {
+      if (viewerInstanceRef.current) {
+        viewerInstanceRef.current.destroy();
+        viewerInstanceRef.current = null;
+      }
+      setPanoramaViewerReady(false);
+    };
+  }, [selectedPanorama]);
 
   const loadSubfolderContents = useCallback(
     async (folderId: string) => {
@@ -1427,61 +1483,51 @@ export default function Maps() {
               <div className="w-full h-full flex flex-col bg-gray-900">
                 {selectedPanorama ? (
                   <div className="flex-1 flex flex-col">
-                    <div className="p-4 bg-gray-800 border-b border-gray-700 flex items-center justify-between">
+                    <div className="p-4 bg-gray-800 border-b border-gray-700 flex items-center justify-between gap-4">
                       <h2 className="text-xl font-bold text-yellow-400 truncate max-w-md">
                         {selectedPanorama.name}
                       </h2>
                       <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => rotatePanorama('left')}
-                          className="p-2 rounded-lg text-gray-300 hover:text-white hover:bg-gray-700"
-                          title="Rotate Left"
+                        <a
+                          href={selectedPanorama.webViewLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-3 py-2 rounded-lg text-sm bg-teal-600 text-white flex items-center gap-2"
+                          data-testid="link-open-panorama-drive"
                         >
-                          <RotateCw className="w-5 h-5 rotate-180" />
-                        </button>
+                          <Globe className="w-4 h-4" />
+                          Open in Drive
+                        </a>
                         <button
-                          onClick={resetPanoramaView}
+                          onClick={() => {
+                            if (viewerInstanceRef.current) {
+                              viewerInstanceRef.current.destroy();
+                              viewerInstanceRef.current = null;
+                            }
+                            setSelectedPanorama(null);
+                            setPanoramaViewerReady(false);
+                          }}
                           className="p-2 rounded-lg text-gray-300 hover:text-white hover:bg-gray-700"
-                          title="Reset View"
-                        >
-                          <RotateCw className="w-5 h-5" />
-                        </button>
-                        <button
-                          onClick={() => rotatePanorama('right')}
-                          className="p-2 rounded-lg text-gray-300 hover:text-white hover:bg-gray-700"
-                          title="Rotate Right"
-                        >
-                          <RotateCw className="w-5 h-5" />
-                        </button>
-                        <button
-                          onClick={() => setSelectedPanorama(null)}
-                          className="p-2 rounded-lg text-gray-300 hover:text-white hover:bg-gray-700"
+                          data-testid="button-close-panorama"
                         >
                           <X className="w-5 h-5" />
                         </button>
                       </div>
                     </div>
-                    <div className="flex-1 flex items-center justify-center p-4 bg-black relative overflow-hidden">
+                    <div className="flex-1 relative bg-black">
                       <div 
-                        className="absolute inset-0 flex items-center justify-center"
-                        style={{ 
-                          transform: `rotateY(${panoramaRotation}deg)`,
-                          transition: 'transform 0.3s ease'
-                        }}
-                      >
-                        <img
-                          src={selectedPanorama.thumbnailLink?.replace("=s220", "=s2048") || selectedPanorama.webContentLink}
-                          alt={selectedPanorama.name}
-                          className="max-w-full max-h-full object-contain rounded-lg"
-                          style={{ 
-                            transform: 'scale(1.2)',
-                            transformOrigin: 'center'
-                          }}
-                        />
-                      </div>
-                      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-gray-800/80 px-4 py-2 rounded-full text-sm text-yellow-300">
-                        Drag to look around • Use rotation controls
-                      </div>
+                        ref={panoramaViewerRef}
+                        className="absolute inset-0"
+                        style={{ width: '100%', height: '100%' }}
+                        data-testid="panorama-viewer-container"
+                      />
+                      {!panoramaViewerReady && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
+                          <div className="text-center">
+                            <LoadingSpinner message="Loading 360° panorama..." />
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ) : (
@@ -1492,45 +1538,94 @@ export default function Maps() {
                           Panorama Images
                         </h2>
                         <p className="text-gray-300">
-                          360° panoramic views from Google Drive folder ID: 1tsbcsTEfg5RLHLJLYXR41avy9SrajsqM
+                          360° panoramic views from Google Drive folder
+                        </p>
+                        <p className="text-gray-500 text-sm mt-1">
+                          Folder ID: 1tsbcsTEfg5RLHLJLYXR41avy9SrajsqM • {panoramaImages.length} images found
                         </p>
                       </div>
 
+                      {panoramaData?.folders && panoramaData.folders.length > 0 && (
+                        <div className="mb-6">
+                          <h3 className="text-lg font-semibold text-yellow-300 mb-3">Folders</h3>
+                          <div className="flex flex-wrap gap-2">
+                            <button
+                              onClick={() => setSelectedPanoramaFolder(null)}
+                              className={`px-4 py-2 rounded-lg text-sm transition-colors ${
+                                selectedPanoramaFolder === null 
+                                  ? 'bg-teal-600 text-white' 
+                                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                              }`}
+                              data-testid="button-all-panoramas"
+                            >
+                              All Images ({panoramaData.allImages?.length || 0})
+                            </button>
+                            {panoramaData.folders.map((folder) => (
+                              <button
+                                key={folder.id}
+                                onClick={() => setSelectedPanoramaFolder(folder.id)}
+                                className={`px-4 py-2 rounded-lg text-sm transition-colors flex items-center gap-2 ${
+                                  selectedPanoramaFolder === folder.id 
+                                    ? 'bg-teal-600 text-white' 
+                                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                                }`}
+                                data-testid={`button-folder-${folder.id}`}
+                              >
+                                <FolderOpen className="w-4 h-4" />
+                                {folder.name}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
                       {panoramaImages.length > 0 ? (
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                          {panoramaImages.map((image) => (
+                          {panoramaImages
+                            .filter(img => !selectedPanoramaFolder || (img as any).folder === selectedPanoramaFolder)
+                            .map((image) => (
                             <button
                               key={image.id}
                               onClick={() => setSelectedPanorama(image)}
                               className="group relative bg-gray-800 rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1"
+                              data-testid={`panorama-image-${image.id}`}
                             >
-                              <div className="aspect-video bg-gray-700 flex items-center justify-center">
+                              <div className="aspect-video bg-gray-700 flex items-center justify-center relative">
                                 {image.thumbnailLink ? (
                                   <img
-                                    src={image.thumbnailLink}
+                                    src={image.thumbnailLink.replace("=s220", "=s400")}
                                     alt={image.name}
                                     className="w-full h-full object-cover"
                                   />
                                 ) : (
                                   <ImageIcon className="w-12 h-12 text-gray-500" />
                                 )}
+                                <div className="absolute top-2 right-2 bg-black/60 px-2 py-1 rounded text-xs text-white flex items-center gap-1">
+                                  <Eye className="w-3 h-3" />
+                                  360°
+                                </div>
                               </div>
                               <div className="p-4">
-                                <h3 className="font-medium text-yellow-300 truncate">
+                                <h3 className="font-medium text-yellow-300 truncate text-sm">
                                   {image.name}
                                 </h3>
                                 <div className="flex items-center mt-2 text-xs text-gray-400">
-                                  <Eye className="w-4 h-4 mr-1" />
-                                  <span>Click to view panorama</span>
+                                  <Compass className="w-4 h-4 mr-1" />
+                                  <span>Click to view 360° panorama</span>
                                 </div>
                               </div>
                               <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
-                                <div className="text-white text-sm font-medium">
-                                  View 360° Panorama
+                                <div className="text-white text-sm font-medium flex items-center gap-2">
+                                  <Eye className="w-4 h-4" />
+                                  View Interactive 360° Panorama
                                 </div>
                               </div>
                             </button>
                           ))}
+                        </div>
+                      ) : panoramaLoading ? (
+                        <div className="flex items-center justify-center py-12">
+                          <LoadingSpinner message="Loading panorama images..." />
                         </div>
                       ) : (
                         <div className="bg-gray-800 rounded-xl p-8 text-center">
@@ -1541,11 +1636,11 @@ export default function Maps() {
                             No Panorama Images Found
                           </h3>
                           <p className="text-gray-400">
-                            There are no panoramic images in the Google Drive folder with ID: 1tsbcsTEfg5RLHLJLYXR41avy9SrajsqM
+                            There are no panoramic images in the Google Drive folder
                           </p>
                           <div className="mt-4 text-sm text-gray-500">
-                            <p>Make sure the folder contains equirectangular projection images</p>
-                            <p className="mt-1">Supported formats: JPG, PNG, WebP</p>
+                            <p>Folder ID: 1tsbcsTEfg5RLHLJLYXR41avy9SrajsqM</p>
+                            <p className="mt-1">Supported formats: JPG, PNG, WebP (equirectangular projection)</p>
                           </div>
                         </div>
                       )}
