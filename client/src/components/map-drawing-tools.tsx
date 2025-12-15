@@ -51,10 +51,10 @@ export function MapDrawingToolbar({
 }: {
   drawingMode: DrawingMode;
   setDrawingMode: (mode: DrawingMode) => void;
-  onExport: () => void;
-  onZoomIn?: () => void;
-  onZoomOut?: () => void;
-  onResetView?: () => void;
+  onExport: () => Promise<void>;
+  onZoomIn: () => void;
+  onZoomOut: () => void;
+  onResetView: () => void;
 }) {
   return (
     <div className="absolute top-4 right-4 z-10 flex flex-col gap-2">
@@ -148,7 +148,9 @@ export function MapDrawingToolbar({
       </button>
 
       <button
-        onClick={onExport}
+        onClick={() => {
+          onExport().catch(err => console.error('Export failed:', err));
+        }}
         className="p-3 rounded-full transition-all hover-elevate"
         style={{
           background: "rgba(14, 33, 72, 0.9)",
